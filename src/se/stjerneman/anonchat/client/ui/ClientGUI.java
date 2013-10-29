@@ -140,7 +140,7 @@ public class ClientGUI {
 
         JButton btnSend = new JButton("Send");
         btnSend.setAction(sendMessageAction);
-        btnSend.setBounds(10, 507, 89, 23);
+        btnSend.setBounds(10, 507, 117, 23);
         frame.getContentPane().add(btnSend);
     }
 
