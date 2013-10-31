@@ -1,11 +1,8 @@
 package se.stjerneman.anonchat.client.ui;
 
-import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 
-import javax.swing.AbstractAction;
-import javax.swing.Action;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -19,12 +16,11 @@ import javax.swing.KeyStroke;
  */
 public class MenuBar {
 
-    private JMenuBar menuBar = new JMenuBar();
+    private final JMenuBar menuBar = new JMenuBar();
     JMenu mnChat = new JMenu("Chat");
     JMenu mnView = new JMenu("View");
     JMenu mnHelp = new JMenu("Help");
 
-    JMenuItem mntmConnect = new JMenuItem("Connect");
     JMenuItem mntmDisconnect = new JMenuItem("Disconnect");
     JMenuItem mntmSettings = new JMenuItem("Settings");
     JMenuItem mntmExit = new JMenuItem("Exit");
@@ -33,15 +29,12 @@ public class MenuBar {
 
     JMenuItem mntmLicense = new JMenuItem("License");
     JMenuItem mntmAboutChat = new JMenuItem("About Chat");
-    private final Action action = new SwingAction();
 
-    public MenuBar () {
+    public MenuBar() {
         menuBar.add(mnChat);
         menuBar.add(mnView);
         menuBar.add(mnHelp);
-        mntmConnect.setAction(action);
 
-        mnChat.add(mntmConnect);
         mnChat.add(mntmDisconnect);
         mnChat.addSeparator();
         mnChat.add(mntmSettings);
@@ -58,31 +51,18 @@ public class MenuBar {
 
     }
 
-    public JMenuBar getMenuBar () {
+    public JMenuBar getMenuBar() {
         return menuBar;
     }
 
-    public JMenuBar organizeMenu (String view) {
+    public JMenuBar organizeMenu(String view) {
         switch (view) {
             case "start":
-                mntmDisconnect.setVisible(false);
                 mntmDisconnect.setEnabled(false);
                 mntmSettings.setEnabled(false);
                 break;
         }
 
         return this.getMenuBar();
-    }
-
-    private class SwingAction extends AbstractAction {
-        public SwingAction () {
-            putValue(NAME, "Connect");
-            putValue(SHORT_DESCRIPTION, "Some short description");
-        }
-
-        public void actionPerformed (ActionEvent e) {
-            ConnectDialog dialog = new ConnectDialog();
-            dialog.setVisible(true);
-        }
     }
 }

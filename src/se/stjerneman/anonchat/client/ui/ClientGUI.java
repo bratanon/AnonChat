@@ -33,20 +33,24 @@ public class ClientGUI {
     private JTextArea messageArea;
     private JTextPane conversationPane;
 
-    private Client client = Client.getInstance();
+    private Client client;
 
     private JList<String> list;
 
     /**
      * Launch the application.
      */
-    public static void main (String[] args) {
+    public static void main(String[] args) {
         EventQueue.invokeLater(new Runnable() {
-            public void run () {
+            @Override
+            public void run() {
                 try {
-                    UIManager.setLookAndFeel(UIManager
-                            .getSystemLookAndFeelClassName());
+                    UIManager
+                            .setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
                     ClientGUI window = new ClientGUI();
+
+                    window.frame.pack();
+                    window.frame.setLocationRelativeTo(null);
                     window.frame.setVisible(true);
 
                 }
@@ -60,33 +64,32 @@ public class ClientGUI {
     /**
      * Create the application.
      */
-    public ClientGUI () {
+    public ClientGUI() {
+        this.showConnectDialog();
+
         initialize();
 
-        System.out.println("TEST");
-
-        // String username = JOptionPane.showInputDialog("Username");
-        //
-        // this.client = new Client("127.0.0.1", 666, username);
-        //
-        // client.startRunning();
-        //
-        // new Thread(new ChatMessageListener()).start();
+        new Thread(new ChatMessageListener()).start();
     }
 
-    public JTextArea getMessageArea () {
+    public JTextArea getMessageArea() {
         return messageArea;
     }
 
-    public JTextPane getConversationPane () {
+    public JTextPane getConversationPane() {
         return conversationPane;
+    }
+
+    public JList getList() {
+        return list;
     }
 
     /**
      * Initialize the contents of the frame.
      */
-    private void initialize () {
+    private void initialize() {
         frame = new JFrame();
+
         frame.setBounds(100, 100, 450, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(800, 600));
@@ -128,7 +131,7 @@ public class ClientGUI {
         messageArea = new JTextArea();
         messageArea.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed (KeyEvent e) {
+            public void keyPressed(KeyEvent e) {
 
                 if (e.isShiftDown() && e.getKeyCode() == e.VK_ENTER) {
                     messageArea.append("\n");
@@ -150,36 +153,19 @@ public class ClientGUI {
 
     private class SendMessageAction extends AbstractAction {
 
-        public SendMessageAction () {
+        public SendMessageAction() {
             putValue(NAME, "Send message");
         }
 
-        public void actionPerformed (ActionEvent e) {
+        @Override
+        public void actionPerformed(ActionEvent e) {
             sendMessage();
         }
     }
 
-    private void sendMessage () {
-        messageArea.setEnabled(false);
-        String message = messageArea.getText();
-
-        if (message.isEmpty()) {
-            messageArea.setEnabled(true);
-            return;
-        }
-
-        messageArea.setText("");
-
-        this.client.getOutputStream().println(message);
-        this.client.getOutputStream().flush();
-
-        messageArea.setEnabled(true);
-        messageArea.requestFocusInWindow();
-    }
-
     private class ChatMessageListener implements Runnable {
         @Override
-        public void run () {
+        public void run() {
             String message;
 
             try {
@@ -200,7 +186,29 @@ public class ClientGUI {
         }
     }
 
-    public JList getList () {
-        return list;
+    private void showConnectDialog() {
+        ConnectDialog dialog = new ConnectDialog();
+        dialog.setLocationRelativeTo(null);
+        dialog.setVisible(true);
+
+        this.client = dialog.getClient();
+    }
+
+    private void sendMessage() {
+        messageArea.setEnabled(false);
+        String message = messageArea.getText();
+
+        if (message.isEmpty()) {
+            messageArea.setEnabled(true);
+            return;
+        }
+
+        messageArea.setText("");
+
+        this.client.getOutputStream().println(message);
+        this.client.getOutputStream().flush();
+
+        messageArea.setEnabled(true);
+        messageArea.requestFocusInWindow();
     }
 }

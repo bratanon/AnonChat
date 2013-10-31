@@ -52,27 +52,14 @@ public class Client {
     private PrintWriter output;
 
     /**
+     * A connection state. True on connected, otherwise false.
+     */
+    private boolean connected;
+
+    /**
      * Client constructor.
      */
-    private Client () {
-    }
-
-    /**
-     * Gets the input stream for this client.
-     * 
-     * @return the input stream for this client.
-     */
-    public BufferedReader getInputStream () {
-        return input;
-    }
-
-    /**
-     * Gets the output stream for this client.
-     * 
-     * @return the output stream for this client.
-     */
-    public PrintWriter getOutputStream () {
-        return output;
+    private Client() {
     }
 
     /**
@@ -80,7 +67,7 @@ public class Client {
      * 
      * @return an instance of the server.
      */
-    public static Client getInstance () {
+    public static Client getInstance() {
         if (Client.instance == null) {
             Client.instance = new Client();
         }
@@ -93,7 +80,7 @@ public class Client {
      * 
      * @return the client username.
      */
-    public String getUsername () {
+    public String getUsername() {
         return username;
     }
 
@@ -103,8 +90,35 @@ public class Client {
      * @param username
      *            the username of the client.
      */
-    public void setUsername (String username) {
+    public void setUsername(String username) {
         this.username = username;
+    }
+
+    /**
+     * Gets the input stream for this client.
+     * 
+     * @return the input stream for this client.
+     */
+    public BufferedReader getInputStream() {
+        return input;
+    }
+
+    /**
+     * Gets the output stream for this client.
+     * 
+     * @return the output stream for this client.
+     */
+    public PrintWriter getOutputStream() {
+        return output;
+    }
+
+    /**
+     * Gets the connection state.
+     * 
+     * @return true when the client is connected, otherwise false.
+     */
+    public boolean isConnected() {
+        return connected;
     }
 
     /**
@@ -114,20 +128,25 @@ public class Client {
      *            the host to connect to.
      * @param port
      *            the port the host is listening to.
+     * @throws IOException
+     * @throws UnknownHostException
      */
-    public void startRunning (String host, int port) {
+    public void startRunning(String host, int port)
+            throws UnknownHostException, IOException {
         this.host = host;
         this.port = port;
 
         if (this.username.isEmpty()) {
-            System.err.println("No username given.");
-            return;
+            throw new NullPointerException("No username given.");
         }
 
         System.out.println("INFO :  Client started.");
+
         this.connectToHost();
         this.setupInputStream();
         this.setupOutputStream();
+
+        this.connected = true;
 
         // Sends username to the server.
         this.output.println(this.username);
@@ -136,31 +155,26 @@ public class Client {
 
     /**
      * Connects to the host.
+     * 
+     * @throws Exception
      */
-    private void connectToHost () {
+    private void connectToHost() throws UnknownHostException, IOException {
         try {
             this.socket = new Socket(this.host, this.port);
             System.out.println("INFO :  Client connected to host.");
         }
         catch (UnknownHostException e) {
-            String host = this.host + ":" + this.port;
-            System.err.println("Could't find the host (" + host + ").");
-            // TODO: Log this!
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            throw e;
         }
         catch (IOException e) {
-            System.err.println("Error when connecting to host.");
-            // TODO: Log this!
-            System.err.println(e.getMessage());
-            e.printStackTrace();
+            throw e;
         }
     }
 
     /**
      * Gets a stream to receive data from the client.
      */
-    private void setupInputStream () {
+    private void setupInputStream() {
         try {
             this.input = new BufferedReader(new InputStreamReader(
                     this.socket.getInputStream()));
@@ -176,7 +190,7 @@ public class Client {
     /**
      * Gets a stream to send data to the server.
      */
-    private void setupOutputStream () {
+    private void setupOutputStream() {
         try {
             this.output = new PrintWriter(this.socket.getOutputStream());
         }
@@ -193,7 +207,7 @@ public class Client {
     private class MessageListener implements Runnable {
 
         @Override
-        public void run () {
+        public void run() {
             String message;
             try {
                 while ((message = getInputStream().readLine()) != null) {

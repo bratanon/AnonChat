@@ -1,10 +1,15 @@
 package se.stjerneman.anonchat.client.ui;
 
 import java.awt.Color;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
+import java.io.IOException;
+import java.net.UnknownHostException;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -14,91 +19,138 @@ import javax.swing.JTextField;
 
 import se.stjerneman.anonchat.client.Client;
 
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+
 public class ConnectDialog extends JDialog {
-    private JTextField username;
-    private JTextField hostPort;
-    private JTextField hostIP;
+    private final JTextField username;
+    private final JTextField hostPort;
+    private final JTextField hostIP;
 
-    public JTextField getUsername () {
-        return username;
-    }
-
-    public JTextField getHostPort () {
-        return hostPort;
-    }
-
-    public JTextField getHostIP () {
-        return hostIP;
-    }
+    private Client client;
 
     /**
      * Create the dialog.
      */
-    public ConnectDialog () {
-        setResizable(false);
+    public ConnectDialog() {
+        setMinimumSize(new Dimension(280, 150));
         setTitle("Connect to server");
-        setBounds(100, 100, 200, 150);
-        getContentPane().setLayout(null);
+        setBounds(100, 100, 280, 150);
+        setAlwaysOnTop(true);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-        setVisible(true);
-
-        JLabel lblHostIp = new JLabel("Host IP");
-        lblHostIp.setBounds(10, 11, 78, 14);
-        getContentPane().add(lblHostIp);
-
-        JLabel lblHostPort = new JLabel("Host port");
-        lblHostPort.setBounds(10, 36, 78, 14);
-        getContentPane().add(lblHostPort);
-
-        JLabel lblUsername = new JLabel("Username");
-        lblUsername.setLabelFor(username);
-        lblUsername.setBounds(10, 61, 78, 14);
-        getContentPane().add(lblUsername);
+        setModalityType(ModalityType.APPLICATION_MODAL);
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent ev) {
+                System.exit(0);
+            }
+        });
 
         username = new JTextField();
 
         username.addFocusListener(new textFieldFocus());
+        getContentPane().setLayout(new FormLayout(new ColumnSpec[] {
+                FormFactory.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("78px"),
+                FormFactory.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("89px:grow"),
+                FormFactory.RELATED_GAP_COLSPEC,
+                FormFactory.DEFAULT_COLSPEC, },
+                new RowSpec[] {
+                        FormFactory.RELATED_GAP_ROWSPEC,
+                        RowSpec.decode("20px"),
+                        FormFactory.LINE_GAP_ROWSPEC,
+                        RowSpec.decode("20px"),
+                        FormFactory.LINE_GAP_ROWSPEC,
+                        RowSpec.decode("20px"),
+                        FormFactory.UNRELATED_GAP_ROWSPEC,
+                        RowSpec.decode("23px"), }));
         username.setName("Username");
-        username.setBounds(98, 58, 86, 20);
-        getContentPane().add(username);
+        getContentPane().add(username, "4, 6, fill, fill");
         username.setColumns(10);
 
         hostPort = new JTextField();
         hostPort.addFocusListener(new textFieldFocus());
         hostPort.setName("Host port");
         hostPort.setText("9999");
-        hostPort.setBounds(98, 33, 86, 20);
-        getContentPane().add(hostPort);
+        getContentPane().add(hostPort, "4, 4, fill, fill");
         hostPort.setColumns(10);
 
         hostIP = new JTextField();
         hostIP.addFocusListener(new textFieldFocus());
         hostIP.setName("Host IP");
         hostIP.setText("127.0.0.1");
-        hostIP.setBounds(98, 8, 86, 20);
-        getContentPane().add(hostIP);
+        getContentPane().add(hostIP, "4, 2, fill, fill");
         hostIP.setColumns(10);
+
+        JLabel lblHostIp = new JLabel("Host IP");
+        getContentPane().add(lblHostIp, "2, 2, fill, center");
+
+        JLabel lblHostPort = new JLabel("Host port");
+        getContentPane().add(lblHostPort, "2, 4, fill, center");
+
+        JLabel lblUsername = new JLabel("Username");
+        lblUsername.setLabelFor(username);
+        getContentPane().add(lblUsername, "2, 6, fill, center");
 
         JButton btnConnect = new JButton("Connect");
         btnConnect.addActionListener(new ActionListener() {
-            public void actionPerformed (ActionEvent arg0) {
-                boolean validated = validateTextFields();
-
-                if (validated) {
-                    Client client = Client.getInstance();
-                    client.setUsername(username.getText());
-                    client.startRunning(hostIP.getText(),
-                            Integer.parseInt(hostPort.getText()));
-
-                    setVisible(false);
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (validateTextFields() && establishConnection()) {
+                    dispose();
                 }
             }
         });
-        btnConnect.setBounds(95, 89, 89, 23);
-        getContentPane().add(btnConnect);
+        getContentPane().add(btnConnect, "4, 8, right, bottom");
     }
 
-    private boolean validateTextFields () {
+    public String getUsername() {
+        return username.getText();
+    }
+
+    public int getHostPort() {
+        return Integer.parseInt(hostPort.getText());
+    }
+
+    public String getHostIP() {
+        return hostIP.getText();
+    }
+
+    public Client getClient() {
+        return client;
+    }
+
+    private boolean establishConnection() {
+        this.client = Client.getInstance();
+        this.client.setUsername(this.getUsername());
+
+        try {
+            this.client.startRunning(this.getHostIP(), this.getHostPort());
+            return true;
+        }
+        catch (UnknownHostException e) {
+            String host = this.getHostIP() + ":" + this.getHostPort();
+            JOptionPane.showMessageDialog(this, "Could't find the host ("
+                    + host + ").", "Error", JOptionPane.ERROR_MESSAGE);
+        }
+        catch (IOException e) {
+            JOptionPane.showMessageDialog(this,
+                    "Error when connecting to host.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+        }
+        catch (NullPointerException e) {
+            JOptionPane.showMessageDialog(this, "No username given.", "Error",
+                    JOptionPane.ERROR_MESSAGE);
+
+        }
+        return false;
+
+    }
+
+    private boolean validateTextFields() {
         JTextField[] fields = {
                 hostIP,
                 hostPort,
@@ -121,9 +173,10 @@ public class ConnectDialog extends JDialog {
 
     private class textFieldFocus extends FocusAdapter {
         @Override
-        public void focusGained (FocusEvent e) {
+        public void focusGained(FocusEvent e) {
             JTextField field = (JTextField) e.getComponent();
             field.setBackground(new Color(255, 255, 255));
         }
     }
+
 }
