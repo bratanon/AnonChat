@@ -4,6 +4,8 @@ import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
@@ -37,16 +39,20 @@ public class ClientGUI {
 
     private JList<String> list;
 
+    private MenuBar menu = new MenuBar();
+    private JScrollPane userListScrollPane;
+
     /**
      * Launch the application.
      */
-    public static void main(String[] args) {
+    public static void main (String[] args) {
         EventQueue.invokeLater(new Runnable() {
             @Override
-            public void run() {
+            public void run () {
                 try {
                     UIManager
-                            .setLookAndFeel("com.sun.java.swing.plaf.gtk.GTKLookAndFeel");
+                            .setLookAndFeel(UIManager
+                                    .getSystemLookAndFeelClassName());
                     ClientGUI window = new ClientGUI();
 
                     window.frame.pack();
@@ -64,37 +70,41 @@ public class ClientGUI {
     /**
      * Create the application.
      */
-    public ClientGUI() {
+    public ClientGUI () {
         this.showConnectDialog();
 
         initialize();
+        setMenuBarActions();
 
         new Thread(new ChatMessageListener()).start();
     }
 
-    public JTextArea getMessageArea() {
+    public JTextArea getMessageArea () {
         return messageArea;
     }
 
-    public JTextPane getConversationPane() {
+    public JTextPane getConversationPane () {
         return conversationPane;
     }
 
-    public JList getList() {
+    public JScrollPane getUserListScrollPane () {
+        return userListScrollPane;
+    }
+
+    public JList getList () {
         return list;
     }
 
     /**
      * Initialize the contents of the frame.
      */
-    private void initialize() {
+    private void initialize () {
         frame = new JFrame();
-
         frame.setBounds(100, 100, 450, 300);
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(800, 600));
         frame.setPreferredSize(new Dimension(800, 600));
-        frame.setJMenuBar(new MenuBar().organizeMenu("start"));
+        frame.setJMenuBar(this.menu.getMenuBar());
         frame.getContentPane().setLayout(null);
 
         JScrollPane ConverationScrollPane = new JScrollPane();
@@ -112,7 +122,7 @@ public class ClientGUI {
         conversationPane.setEditable(false);
         ConverationScrollPane.setViewportView(conversationPane);
 
-        JScrollPane userListScrollPane = new JScrollPane();
+        userListScrollPane = new JScrollPane();
         userListScrollPane
                 .setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
         userListScrollPane.setBounds(580, 81, 194, 415);
@@ -131,7 +141,7 @@ public class ClientGUI {
         messageArea = new JTextArea();
         messageArea.addKeyListener(new KeyAdapter() {
             @Override
-            public void keyPressed(KeyEvent e) {
+            public void keyPressed (KeyEvent e) {
 
                 if (e.isShiftDown() && e.getKeyCode() == e.VK_ENTER) {
                     messageArea.append("\n");
@@ -153,19 +163,19 @@ public class ClientGUI {
 
     private class SendMessageAction extends AbstractAction {
 
-        public SendMessageAction() {
+        public SendMessageAction () {
             putValue(NAME, "Send message");
         }
 
         @Override
-        public void actionPerformed(ActionEvent e) {
+        public void actionPerformed (ActionEvent e) {
             sendMessage();
         }
     }
 
     private class ChatMessageListener implements Runnable {
         @Override
-        public void run() {
+        public void run () {
             String message;
 
             try {
@@ -186,7 +196,7 @@ public class ClientGUI {
         }
     }
 
-    private void showConnectDialog() {
+    private void showConnectDialog () {
         ConnectDialog dialog = new ConnectDialog();
         dialog.setLocationRelativeTo(null);
         dialog.setVisible(true);
@@ -194,7 +204,16 @@ public class ClientGUI {
         this.client = dialog.getClient();
     }
 
-    private void sendMessage() {
+    private void setMenuBarActions () {
+        this.menu.getMntmShowUsers().addItemListener(new ItemListener() {
+            public void itemStateChanged (ItemEvent e) {
+                boolean selected = (e.getStateChange() == ItemEvent.SELECTED);
+                getUserListScrollPane().setVisible(selected);
+            }
+        });
+    }
+
+    private void sendMessage () {
         messageArea.setEnabled(false);
         String message = messageArea.getText();
 
@@ -211,4 +230,5 @@ public class ClientGUI {
         messageArea.setEnabled(true);
         messageArea.requestFocusInWindow();
     }
+
 }

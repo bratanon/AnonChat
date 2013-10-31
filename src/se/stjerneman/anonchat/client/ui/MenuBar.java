@@ -17,20 +17,21 @@ import javax.swing.KeyStroke;
 public class MenuBar {
 
     private final JMenuBar menuBar = new JMenuBar();
-    JMenu mnChat = new JMenu("Chat");
-    JMenu mnView = new JMenu("View");
-    JMenu mnHelp = new JMenu("Help");
+    private JMenu mnChat = new JMenu("Chat");
+    private JMenu mnView = new JMenu("View");
+    private JMenu mnHelp = new JMenu("Help");
 
-    JMenuItem mntmDisconnect = new JMenuItem("Disconnect");
-    JMenuItem mntmSettings = new JMenuItem("Settings");
-    JMenuItem mntmExit = new JMenuItem("Exit");
+    private JMenuItem mntmDisconnect = new JMenuItem("Disconnect");
+    private JMenuItem mntmSettings = new JMenuItem("Settings");
+    private JMenuItem mntmExit = new JMenuItem("Exit");
 
-    JCheckBoxMenuItem mntmShowUsers = new JCheckBoxMenuItem("Show users");
+    private JCheckBoxMenuItem mntmShowUsers = new JCheckBoxMenuItem(
+            "Show users");
 
-    JMenuItem mntmLicense = new JMenuItem("License");
-    JMenuItem mntmAboutChat = new JMenuItem("About Chat");
+    private JMenuItem mntmLicense = new JMenuItem("License");
+    private JMenuItem mntmAboutChat = new JMenuItem("About Chat");
 
-    public MenuBar() {
+    public MenuBar () {
         menuBar.add(mnChat);
         menuBar.add(mnView);
         menuBar.add(mnHelp);
@@ -46,23 +47,21 @@ public class MenuBar {
         mnHelp.add(mntmLicense);
         mnHelp.add(mntmAboutChat);
 
+        mntmShowUsers.setSelected(true);
+        mntmDisconnect.setEnabled(false);
+        mntmSettings.setEnabled(false);
+
         mntmExit.setAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_Q,
                 InputEvent.CTRL_MASK));
 
     }
 
-    public JMenuBar getMenuBar() {
+    public JMenuBar getMenuBar () {
         return menuBar;
     }
 
-    public JMenuBar organizeMenu(String view) {
-        switch (view) {
-            case "start":
-                mntmDisconnect.setEnabled(false);
-                mntmSettings.setEnabled(false);
-                break;
-        }
-
-        return this.getMenuBar();
+    public JCheckBoxMenuItem getMntmShowUsers () {
+        return mntmShowUsers;
     }
+
 }
