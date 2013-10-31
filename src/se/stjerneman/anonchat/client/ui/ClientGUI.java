@@ -13,11 +13,11 @@ import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
-import javax.swing.JOptionPane;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
+import javax.swing.UIManager;
 
 import se.stjerneman.anonchat.client.Client;
 
@@ -33,7 +33,7 @@ public class ClientGUI {
     private JTextArea messageArea;
     private JTextPane conversationPane;
 
-    private Client client = null;
+    private Client client = Client.getInstance();
 
     private JList<String> list;
 
@@ -44,8 +44,11 @@ public class ClientGUI {
         EventQueue.invokeLater(new Runnable() {
             public void run () {
                 try {
+                    UIManager.setLookAndFeel(UIManager
+                            .getSystemLookAndFeelClassName());
                     ClientGUI window = new ClientGUI();
                     window.frame.setVisible(true);
+
                 }
                 catch (Exception e) {
                     e.printStackTrace();
@@ -60,14 +63,15 @@ public class ClientGUI {
     public ClientGUI () {
         initialize();
 
-        String username = JOptionPane.showInputDialog("Username");
+        System.out.println("TEST");
 
-        this.client = new Client("127.0.0.1", 666, username);
-
-        client.startRunning();
-
-        new Thread(new ChatMessageListener()).start();
-
+        // String username = JOptionPane.showInputDialog("Username");
+        //
+        // this.client = new Client("127.0.0.1", 666, username);
+        //
+        // client.startRunning();
+        //
+        // new Thread(new ChatMessageListener()).start();
     }
 
     public JTextArea getMessageArea () {
@@ -87,7 +91,7 @@ public class ClientGUI {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setMinimumSize(new Dimension(800, 600));
         frame.setPreferredSize(new Dimension(800, 600));
-        frame.setJMenuBar(new MenuBar().organizeMenu("login"));
+        frame.setJMenuBar(new MenuBar().organizeMenu("start"));
         frame.getContentPane().setLayout(null);
 
         JScrollPane ConverationScrollPane = new JScrollPane();

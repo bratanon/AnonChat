@@ -17,6 +17,11 @@ import java.net.UnknownHostException;
 public class Client {
 
     /**
+     * A client instance.
+     */
+    private static Client instance = null;
+
+    /**
      * The host to connect to.
      */
     private String host;
@@ -48,18 +53,8 @@ public class Client {
 
     /**
      * Client constructor.
-     * 
-     * @param host
-     *            the host to connect to.
-     * @param port
-     *            the port the host is listening to.
-     * @param username
-     *            this client username.
      */
-    public Client (String host, int port, String username) {
-        this.host = host;
-        this.port = port;
-        this.username = username;
+    private Client () {
     }
 
     /**
@@ -81,9 +76,54 @@ public class Client {
     }
 
     /**
-     * Starts the client.
+     * Gets an instance of the server.
+     * 
+     * @return an instance of the server.
      */
-    public void startRunning () {
+    public static Client getInstance () {
+        if (Client.instance == null) {
+            Client.instance = new Client();
+        }
+
+        return Client.instance;
+    }
+
+    /**
+     * Gets the client username.
+     * 
+     * @return the client username.
+     */
+    public String getUsername () {
+        return username;
+    }
+
+    /**
+     * Sets the client username.
+     * 
+     * @param username
+     *            the username of the client.
+     */
+    public void setUsername (String username) {
+        this.username = username;
+    }
+
+    /**
+     * Starts the client.
+     * 
+     * @param host
+     *            the host to connect to.
+     * @param port
+     *            the port the host is listening to.
+     */
+    public void startRunning (String host, int port) {
+        this.host = host;
+        this.port = port;
+
+        if (this.username.isEmpty()) {
+            System.err.println("No username given.");
+            return;
+        }
+
         System.out.println("INFO :  Client started.");
         this.connectToHost();
         this.setupInputStream();
