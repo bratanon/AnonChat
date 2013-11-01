@@ -5,10 +5,10 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
+
+import se.stjerneman.anonchat.utils.ChatMessage;
 
 /**
  * 
@@ -93,8 +93,12 @@ public class Server {
             this.connectedClients.add(client);
             clientThread.start();
 
-            this.broadcast("<SERVER>", "User <" + client.getUsername()
-                    + "> joined.");
+            System.out.println("[DEBUG] : JOIN - " + client.getUsername());
+            // Send login notification.
+            this.broadcast(new ChatMessage(null, client
+                    .getUsername(), ChatMessage.SIGNIN), (byte) 1);
+
+            this.sendUserList();
         }
     }
 
@@ -135,30 +139,22 @@ public class Server {
     /**
      * Send the message to all connected clients.
      * 
-     * @param username
-     *            the client username that sends the message.
      * @param message
      *            the message from the client to send to all clients.
      */
-    protected void broadcast (String username, String message) {
+    protected void broadcast (Object object, byte byteToSend) {
         for (ClientThread client : this.connectedClients) {
-            client.sendMessage(this.formatMessage(username, message));
+            client.send(object, byteToSend);
         }
     }
 
-    /**
-     * 
-     * @param username
-     *            the client username that sends the message.
-     * @param message
-     *            the message from the client to send to all clients.
-     * @return a formated message.
-     */
-    private String formatMessage (String username, String message) {
-        SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-        String time = dateFormat.format(new Date());
+    private void sendUserList () {
+        UserList userList = new UserList();
+        for (ClientThread client : this.connectedClients) {
+            userList.add(client.getUsername());
+        }
 
-        return String.format("[%s] %s - %s", time, username, message);
+        this.broadcast(userList, (byte) 2);
     }
 
     /**
@@ -177,8 +173,8 @@ public class Server {
             String message = null;
             try {
                 while ((message = input.readLine()) != null) {
-                    // TODO: Format message as a object instead.
-                    broadcast("SERVER:", message);
+                    broadcast(new ChatMessage(message, null,
+                            ChatMessage.SERVER_MESSAGE), (byte) 1);
                 }
             }
             catch (IOException e) {
@@ -186,5 +182,4 @@ public class Server {
             }
         }
     }
-
 }

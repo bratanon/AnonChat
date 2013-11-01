@@ -1,41 +1,75 @@
 package se.stjerneman.anonchat.utils;
 
+import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-public class ChatMessage {
-    public static final int MESSAGE = 1;
-    public static final int SIGNIN = 50;
-    public static final int SIGNOUT = 100;
-    public static final int SERVER_MESSAGE = 1000;
+public class ChatMessage implements Serializable {
 
+    private static final long serialVersionUID = 1829126110767527702L;
+
+    public static final int MESSAGE = 1;
+    public static final int SIGNIN = 2;
+    public static final int SIGNOUT = 3;
+    public static final int SERVER_MESSAGE = 4;
+
+    /**
+     * The type of this massage.
+     */
     private int type;
 
+    /**
+     * The actual message.
+     */
     private String message;
 
-    private SimpleDateFormat dateFormat = new SimpleDateFormat("HH:mm:ss");
-
+    /**
+     * A formated time when the message were sent.
+     */
     private String time;
 
-    public ChatMessage (int type, String message) {
-        this.setType(type);
-        this.setMessage(message);
-        this.time = dateFormat.format(new Date());
+    /**
+     * The username of the user who sent this message.
+     */
+    private String username;
+
+    public ChatMessage (String message, String username) {
+        this(message, username, MESSAGE);
     }
 
-    public int getType () {
-        return type;
-    }
-
-    public void setType (int type) {
-        this.type = type;
-    }
-
-    public String getMessage () {
-        return message;
-    }
-
-    public void setMessage (String message) {
+    public ChatMessage (String message, String username, int type) {
         this.message = message;
+        this.username = username;
+        this.type = type;
+        this.time = new SimpleDateFormat("HH:mm:ss").format(new Date());
+    }
+
+    @Override
+    public String toString () {
+        switch (this.type) {
+            case SIGNIN:
+                return this.formatSigninMessage();
+            case SERVER_MESSAGE:
+                return formatServerMessage();
+            case MESSAGE:
+                return formatMessage();
+            default:
+                return "ERROR";
+        }
+    }
+
+    private String formatSigninMessage () {
+        return String.format("[%s] %s joined.",
+                this.time, this.username);
+    }
+
+    private String formatServerMessage () {
+        return String.format("[%s] <----SERVER----> %s", this.time,
+                this.message);
+    }
+
+    private String formatMessage () {
+        return String.format("[%s] <%s> %s", this.time, this.username,
+                this.message);
     }
 }

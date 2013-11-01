@@ -34,7 +34,7 @@ public class ConnectDialog extends JDialog {
     /**
      * Create the dialog.
      */
-    public ConnectDialog() {
+    public ConnectDialog () {
         setMinimumSize(new Dimension(280, 150));
         setTitle("Connect to server");
         setBounds(100, 100, 280, 150);
@@ -43,7 +43,7 @@ public class ConnectDialog extends JDialog {
         setModalityType(ModalityType.APPLICATION_MODAL);
         addWindowListener(new WindowAdapter() {
             @Override
-            public void windowClosing(WindowEvent ev) {
+            public void windowClosing (WindowEvent ev) {
                 System.exit(0);
             }
         });
@@ -74,7 +74,7 @@ public class ConnectDialog extends JDialog {
         hostPort = new JTextField();
         hostPort.addFocusListener(new textFieldFocus());
         hostPort.setName("Host port");
-        hostPort.setText("9999");
+        hostPort.setText("6789");
         getContentPane().add(hostPort, "4, 4, fill, fill");
         hostPort.setColumns(10);
 
@@ -98,7 +98,7 @@ public class ConnectDialog extends JDialog {
         JButton btnConnect = new JButton("Connect");
         btnConnect.addActionListener(new ActionListener() {
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed (ActionEvent e) {
                 if (validateTextFields() && establishConnection()) {
                     dispose();
                 }
@@ -107,23 +107,23 @@ public class ConnectDialog extends JDialog {
         getContentPane().add(btnConnect, "4, 8, right, bottom");
     }
 
-    public String getUsername() {
+    public String getUsername () {
         return username.getText();
     }
 
-    public int getHostPort() {
+    public int getHostPort () {
         return Integer.parseInt(hostPort.getText());
     }
 
-    public String getHostIP() {
+    public String getHostIP () {
         return hostIP.getText();
     }
 
-    public Client getClient() {
+    public Client getClient () {
         return client;
     }
 
-    private boolean establishConnection() {
+    private boolean establishConnection () {
         this.client = Client.getInstance();
         this.client.setUsername(this.getUsername());
 
@@ -135,22 +135,24 @@ public class ConnectDialog extends JDialog {
             String host = this.getHostIP() + ":" + this.getHostPort();
             JOptionPane.showMessageDialog(this, "Could't find the host ("
                     + host + ").", "Error", JOptionPane.ERROR_MESSAGE);
+            return false;
         }
         catch (IOException e) {
             JOptionPane.showMessageDialog(this,
                     "Error when connecting to host.", "Error",
                     JOptionPane.ERROR_MESSAGE);
+            return false;
         }
         catch (NullPointerException e) {
+            System.out.println(e.getMessage());
             JOptionPane.showMessageDialog(this, "No username given.", "Error",
                     JOptionPane.ERROR_MESSAGE);
-
+            return false;
         }
-        return false;
 
     }
 
-    private boolean validateTextFields() {
+    private boolean validateTextFields () {
         JTextField[] fields = {
                 hostIP,
                 hostPort,
@@ -161,7 +163,7 @@ public class ConnectDialog extends JDialog {
             if (field.getText().isEmpty()) {
                 field.setBackground(new Color(255, 153, 153));
 
-                JOptionPane.showMessageDialog(null,
+                JOptionPane.showMessageDialog(this,
                         field.getName() + " can't be empty.", "Error",
                         JOptionPane.ERROR_MESSAGE);
                 return false;
@@ -173,7 +175,7 @@ public class ConnectDialog extends JDialog {
 
     private class textFieldFocus extends FocusAdapter {
         @Override
-        public void focusGained(FocusEvent e) {
+        public void focusGained (FocusEvent e) {
             JTextField field = (JTextField) e.getComponent();
             field.setBackground(new Color(255, 255, 255));
         }

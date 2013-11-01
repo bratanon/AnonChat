@@ -9,9 +9,11 @@ import java.awt.event.ItemListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
+import javax.swing.DefaultListModel;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JList;
@@ -22,6 +24,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 
 import se.stjerneman.anonchat.client.Client;
+import se.stjerneman.anonchat.server.UserList;
+import se.stjerneman.anonchat.utils.ChatMessage;
 
 /**
  * 
@@ -41,6 +45,8 @@ public class ClientGUI {
 
     private MenuBar menu = new MenuBar();
     private JScrollPane userListScrollPane;
+
+    private DefaultListModel<String> userListModel;
 
     /**
      * Launch the application.
@@ -128,7 +134,9 @@ public class ClientGUI {
         userListScrollPane.setBounds(580, 81, 194, 415);
         frame.getContentPane().add(userListScrollPane);
 
+        userListModel = new DefaultListModel<String>();
         list = new JList<String>();
+        list.setModel(userListModel);
         userListScrollPane.setViewportView(list);
 
         JScrollPane messareAreaScrollPane = new JScrollPane();
@@ -176,17 +184,33 @@ public class ClientGUI {
     private class ChatMessageListener implements Runnable {
         @Override
         public void run () {
-            String message;
+            ChatMessage message;
 
             try {
-                while ((message = client.getInputStream().readLine()) != null) {
-                    conversationPane.setText(conversationPane.getText() + "\n"
-                            + message);
+                while (true) {
+                    byte sentByte = client.getInputStream().readByte();
 
-                    // Auto-scrolls the JTextPane
-                    int pos = conversationPane.getText().length();
-                    conversationPane.setCaretPosition(pos);
+                    if (sentByte == 1) {
+                        message = (ChatMessage) client.getInputStream()
+                                .readObject();
+                        conversationPane.setText(conversationPane.getText()
+                                + "\n"
+                                + message);
+
+                        // Auto-scrolls the JTextPane
+                        int pos = conversationPane.getText().length();
+                        conversationPane.setCaretPosition(pos);
+                    }
+
+                    if (sentByte == 2) {
+                        UserList userList = (UserList) client.getInputStream()
+                                .readObject();
+                        updateUserList(userList.getUserList());
+                    }
                 }
+            }
+            catch (ClassNotFoundException e) {
+                e.printStackTrace();
             }
             catch (IOException e) {
                 // TODO: Log this!
@@ -224,11 +248,25 @@ public class ClientGUI {
 
         messageArea.setText("");
 
-        this.client.getOutputStream().println(message);
-        this.client.getOutputStream().flush();
+        try {
+            this.client.getOutputStream().writeByte(1);
+            this.client.getOutputStream().writeObject(message);
+            this.client.getOutputStream().flush();
+        }
+        catch (IOException e) {
+            e.printStackTrace();
+        }
 
         messageArea.setEnabled(true);
         messageArea.requestFocusInWindow();
     }
 
+    private void updateUserList (List<String> userList) {
+        this.userListModel.clear();
+
+        for (String username : userList) {
+            this.userListModel.addElement(username);
+        }
+
+    }
 }

@@ -1,11 +1,12 @@
 package se.stjerneman.anonchat.server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
+
+import se.stjerneman.anonchat.utils.ChatMessage;
 
 /**
  * Client thread.
@@ -28,12 +29,12 @@ class ClientThread implements Runnable {
     /**
      * Stream to receive data from the client.
      */
-    private BufferedReader input;
+    private ObjectInputStream input;
 
     /**
      * Stream to send data to the client.
      */
-    private PrintWriter output;
+    private ObjectOutputStream output;
 
     /**
      * This client username.
@@ -49,15 +50,16 @@ class ClientThread implements Runnable {
     public ClientThread (Socket clientSocket) {
         this.clientSocket = clientSocket;
 
-        this.setupInputStream();
         this.setupOutputStream();
+        this.setupInputStream();
 
         try {
-            this.username = this.input.readLine();
+            this.username = this.input.readUTF();
         }
         catch (IOException e) {
             e.printStackTrace();
         }
+
     }
 
     /**
@@ -70,15 +72,24 @@ class ClientThread implements Runnable {
     }
 
     /**
-     * Runs the thread.
+     * Runs the thread and wait for client input.
      */
     public void run () {
         try {
-            String message = null;
-            while ((message = this.input.readLine().trim()) != null) {
-                this.server.broadcast(username, message);
+            // TODO: Handle bytes here..
+            while (!this.clientSocket.isInputShutdown()) {
+                byte sentByte = this.input.readByte();
+
+                // Common message.
+                if (sentByte == 1) {
+                    String message = (String) this.input.readObject();
+                    ChatMessage cm = new ChatMessage(message, this.username);
+                    this.server.broadcast(cm, (byte) 1);
+                }
+
             }
         }
+        catch (ClassNotFoundException e) {}
         catch (SocketException e) {
             // TODO: Close this tread and all streams to it.
             return;
@@ -94,8 +105,8 @@ class ClientThread implements Runnable {
      */
     private void setupInputStream () {
         try {
-            this.input = new BufferedReader(new InputStreamReader(
-                    this.clientSocket.getInputStream()));
+            this.input = new ObjectInputStream(
+                    this.clientSocket.getInputStream());
         }
         catch (IOException e) {
             System.err.println("Error getting client input stream.");
@@ -108,7 +119,8 @@ class ClientThread implements Runnable {
      */
     private void setupOutputStream () {
         try {
-            this.output = new PrintWriter(this.clientSocket.getOutputStream());
+            this.output = new ObjectOutputStream(
+                    this.clientSocket.getOutputStream());
         }
         catch (IOException e) {
             System.err.println("Error getting client output stream.");
@@ -122,15 +134,22 @@ class ClientThread implements Runnable {
      * @param message
      *            a message to send to the client.
      */
-    protected void sendMessage (String message) {
-        // Tests if the client still is connected.
-        if (this.clientSocket.isClosed()) {
-            // TODO: Remove sockets and close everything.
-            return;
+    protected void send (Object object, byte byteToSend) {
+        try {
+            this.output.writeByte(byteToSend);
+
+            this.output.writeObject(object);
+
+        }
+        catch (IOException e) {
+            try {
+                this.clientSocket.close();
+            }
+            catch (IOException e1) {
+                e1.printStackTrace();
+            }
         }
 
-        this.output.println(message);
-        this.output.flush();
     }
 
 }
