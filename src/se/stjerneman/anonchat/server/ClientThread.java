@@ -22,6 +22,11 @@ class ClientThread implements Runnable {
     private Server server = Server.getInstance();
 
     /**
+     * This client universally unique identifier.
+     */
+    private final String uuid;
+
+    /**
      * This client socket.
      */
     private Socket clientSocket;
@@ -47,17 +52,34 @@ class ClientThread implements Runnable {
      * @param clientSocket
      *            this client socket.
      */
-    public ClientThread (Socket clientSocket) {
+    public ClientThread (String clientUUID, Socket clientSocket) {
+        this.uuid = clientUUID;
         this.clientSocket = clientSocket;
 
+        // Setup streams, for some reason we have to setup the output first,
+        // else it will thrown an exception.
         this.setupOutputStream();
         this.setupInputStream();
 
+        // Get the username from the client.
         try {
-            this.username = this.input.readUTF();
+            this.username = (String) this.input.readObject();
         }
         catch (IOException e) {
-            e.printStackTrace();
+            System.err.println("Couldn't get the username from the client.");
+            this.server.stopClient(this.uuid);
+            // TODO: Log this.
+        }
+        catch (ClassNotFoundException e) {}
+
+        // Send the UUID to the client.
+        try {
+            this.output.writeObject(this.uuid);
+        }
+        catch (IOException e) {
+            System.err.println("Couldn't send the uuid to the client.");
+            this.server.stopClient(this.uuid);
+            // TODO: Log this.
         }
 
     }
@@ -76,41 +98,30 @@ class ClientThread implements Runnable {
      */
     public void run () {
         try {
-            // TODO: Handle bytes here..
             while (!this.clientSocket.isInputShutdown()) {
                 byte sentByte = this.input.readByte();
-
                 // Common message.
                 if (sentByte == 1) {
                     String message = (String) this.input.readObject();
                     ChatMessage cm = new ChatMessage(message, this.username);
-                    this.server.broadcast(cm, (byte) 1);
+                    this.server.broadcastMessage(cm);
                 }
-
             }
         }
-        catch (ClassNotFoundException e) {}
+        catch (ClassNotFoundException e) {
+            System.err.println("ClassNotFoundException when receiving data.");
+            // TODO: Log this.
+        }
         catch (SocketException e) {
-            // TODO: Close this tread and all streams to it.
-            return;
+            this.server.stopClient(this.uuid);
+            // TODO: Log this.
         }
         catch (IOException e) {
-            System.err.println("Error when sending message.");
-            e.printStackTrace();
+            System.err.println("IOException when receiving data.");
+            // TODO: Log this.
         }
-    }
-
-    /**
-     * Gets a stream to receive data from the client.
-     */
-    private void setupInputStream () {
-        try {
-            this.input = new ObjectInputStream(
-                    this.clientSocket.getInputStream());
-        }
-        catch (IOException e) {
-            System.err.println("Error getting client input stream.");
-            e.printStackTrace();
+        finally {
+            this.server.stopClient(this.uuid);
         }
     }
 
@@ -124,7 +135,23 @@ class ClientThread implements Runnable {
         }
         catch (IOException e) {
             System.err.println("Error getting client output stream.");
-            e.printStackTrace();
+            // TODO: Log this.
+            this.server.stopClient(this.uuid);
+        }
+    }
+
+    /**
+     * Gets a stream to receive data from the client.
+     */
+    private void setupInputStream () {
+        try {
+            this.input = new ObjectInputStream(
+                    this.clientSocket.getInputStream());
+        }
+        catch (IOException e) {
+            System.err.println("Error getting client input stream.");
+            // TODO: Log this.
+            this.server.stopClient(this.uuid);
         }
     }
 
@@ -136,20 +163,27 @@ class ClientThread implements Runnable {
      */
     protected void send (Object object, byte byteToSend) {
         try {
+            this.output.flush();
             this.output.writeByte(byteToSend);
-
+            this.output.flush();
             this.output.writeObject(object);
-
         }
         catch (IOException e) {
-            try {
-                this.clientSocket.close();
-            }
-            catch (IOException e1) {
-                e1.printStackTrace();
-            }
+            System.err.println("IOException when writing to client.");
+            // TODO: Log this.
+            this.server.stopClient(this.uuid);
         }
-
     }
 
+    /**
+     * Closes this clients socket and the streams.
+     */
+    protected void close () {
+        try {
+            this.clientSocket.close();
+        }
+        catch (IOException e) {
+            // TODO: Do we need to handle this?
+        }
+    }
 }

@@ -49,10 +49,9 @@ public class Client {
      */
     private ObjectOutputStream output;
 
-    /**
-     * A connection state. True on connected, otherwise false.
-     */
-    private boolean connected;
+    private String uuid;
+
+    private boolean running;
 
     /**
      * Client constructor.
@@ -111,12 +110,20 @@ public class Client {
     }
 
     /**
-     * Gets the connection state.
+     * Gets the client uuid.
      * 
-     * @return true when the client is connected, otherwise false.
+     * @return the client uuid.
      */
-    public boolean isConnected () {
-        return connected;
+    public String getUUID () {
+        return uuid;
+    }
+
+    public boolean isRunning () {
+        return running;
+    }
+
+    public void setRunning (boolean running) {
+        this.running = running;
     }
 
     /**
@@ -143,14 +150,22 @@ public class Client {
 
         this.connectToHost();
 
+        this.setRunning(true);
+
         this.setupOutputStream();
         this.setupInputStream();
 
-        this.connected = true;
-
         // Sends username to the server.
-        this.output.writeUTF(this.username);
-        this.output.flush();
+        this.output.writeObject(this.getUsername());
+
+        // Get the UUID.
+        try {
+            this.uuid = (String) this.input.readObject();
+        }
+        catch (IOException e) {
+            System.err.println("Couldn't get the uuid from the server.");
+        }
+        catch (ClassNotFoundException e) {}
     }
 
     /**
@@ -199,7 +214,36 @@ public class Client {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
-
     }
 
+    /**
+     * Sends a message to the server.
+     * 
+     * @param message
+     *            a message to send to the server.
+     */
+    public void sendMessage (String message) {
+        try {
+            this.output.writeByte(1);
+            this.output.writeObject(message);
+        }
+        catch (IOException e) {
+            System.err.println("Couldn't send the message to the server.");
+            // TODO: Log this!
+            e.printStackTrace();
+        }
+    }
+
+    public void disconnect () {
+        this.setRunning(false);
+        try {
+            this.socket.close();
+        }
+        catch (IOException e) {}
+    }
+
+    public void connect () throws UnknownHostException, NullPointerException,
+            IOException {
+        this.startRunning(this.host, this.port);
+    }
 }

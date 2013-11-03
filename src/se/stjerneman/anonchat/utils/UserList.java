@@ -1,4 +1,4 @@
-package se.stjerneman.anonchat.server;
+package se.stjerneman.anonchat.utils;
 
 import java.io.Serializable;
 import java.util.ArrayList;
