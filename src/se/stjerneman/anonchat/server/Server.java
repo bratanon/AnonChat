@@ -117,9 +117,10 @@ public class Server {
 
             System.out.println("[DEBUG] : JOIN - " + client.getUsername());
 
-            this.broadcastUserList();
+            this.broadcastMessage(new ChatMessage(null, client
+                    .getUsername(), ChatMessage.SIGNIN));
 
-            this.listThreads();
+            this.broadcastUserList();
         }
     }
 
@@ -209,20 +210,21 @@ public class Server {
         Thread t;
         ClientThread ct;
 
-        System.out.println("Connections:" + this.connectedClients.size());
-        System.out.println("Connections threads:"
-                + this.connectedClientsThreads.size());
-
         if ((ct = this.connectedClients.get(uuid)) != null) {
+
             System.out.println("[DEBUG] : close client");
             ct.close();
-
             this.connectedClients.remove(uuid);
+
+            this.broadcastMessage(new ChatMessage(null, ct.getUsername(),
+                    ChatMessage.SIGNOUT));
         }
 
         if ((t = this.connectedClientsThreads.get(uuid)) != null) {
             System.out.println("[DEBUG] : close thread");
             try {
+                // This thread is IO blocked until something is sent to the
+                // client.
                 t.join(1000);
             }
             catch (InterruptedException e) {}
@@ -230,8 +232,6 @@ public class Server {
                 this.connectedClientsThreads.remove(uuid);
             }
         }
-
-        this.listThreads();
 
         System.out.println("Connections:" + this.connectedClients.size());
         System.out.println("Connections threads:"

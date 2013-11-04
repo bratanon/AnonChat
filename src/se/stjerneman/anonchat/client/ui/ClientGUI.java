@@ -1,6 +1,7 @@
 package se.stjerneman.anonchat.client.ui;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
@@ -21,6 +22,10 @@ import javax.swing.JTextArea;
 import javax.swing.JTextPane;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
+import javax.swing.text.BadLocationException;
+import javax.swing.text.Style;
+import javax.swing.text.StyleConstants;
+import javax.swing.text.StyledDocument;
 
 import se.stjerneman.anonchat.client.Client;
 import se.stjerneman.anonchat.utils.ChatMessage;
@@ -47,6 +52,10 @@ public class ClientGUI {
     private JLabel lblUUID;
     private JButton btnSend;
 
+    private Style serverStyle;
+    private Style clientConnectStyle;
+    private Style clientDisconnectStyle;;
+
     /**
      * Launch the application.
      */
@@ -71,6 +80,22 @@ public class ClientGUI {
         });
     }
 
+    private void setupColors () {
+        this.serverStyle = getChatPane().addStyle("SERVERMESSAGE", null);
+        this.clientConnectStyle = getChatPane().addStyle("CONNECT", null);
+        this.clientDisconnectStyle = getChatPane().addStyle("DISCONNECT", null);
+
+        StyleConstants.setForeground(this.serverStyle, Color.GREEN.darker());
+        StyleConstants.setBold(this.serverStyle, true);
+
+        StyleConstants.setForeground(this.clientConnectStyle, Color.BLUE);
+        StyleConstants.setItalic(this.clientConnectStyle, true);
+
+        StyleConstants.setForeground(this.clientDisconnectStyle,
+                Color.RED.darker());
+        StyleConstants.setItalic(this.clientDisconnectStyle, true);
+    }
+
     /**
      * Create the application.
      */
@@ -78,6 +103,9 @@ public class ClientGUI {
         this.showConnectDialog();
 
         this.initialize();
+
+        this.setupColors();
+
         this.startListening();
     }
 
@@ -93,6 +121,18 @@ public class ClientGUI {
         return messageArea;
     }
 
+    public Style getServerStyle () {
+        return serverStyle;
+    }
+
+    public Style getClientConnectStyle () {
+        return clientConnectStyle;
+    }
+
+    public Style getClientDisconnectStyle () {
+        return clientDisconnectStyle;
+    }
+
     /**
      * Initialize the contents of the frame.
      */
@@ -103,7 +143,7 @@ public class ClientGUI {
                 .getImage(
                         ClientGUI.class
                                 .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
-        frmChat.setTitle("Chat");
+        frmChat.setTitle("GBJU13 Chat v1.0");
         frmChat.setBounds(100, 100, 450, 300);
         frmChat.setJMenuBar(new MenuBar(this).getMenuBar());
         frmChat.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -133,7 +173,7 @@ public class ClientGUI {
         panel.add(scrollPaneChatWindow, BorderLayout.CENTER);
 
         chatPane = new JTextPane();
-        chatPane.setFont(new Font("Arial", Font.PLAIN, 11));
+        // chatPane.setFont(new Font("Arial", Font.PLAIN, 11));
         chatPane.setEditable(false);
         scrollPaneChatWindow.setViewportView(chatPane);
 
@@ -220,12 +260,34 @@ public class ClientGUI {
                     if (sentByte == 1) {
                         message = (ChatMessage) client.getInputStream()
                                 .readObject();
-                        getChatPane().setText(getChatPane().getText()
-                                + "\n"
-                                + message);
+                        StyledDocument doc = getChatPane()
+                                .getStyledDocument();
+
+                        Style currentStyle = null;
+
+                        switch (message.getType()) {
+                            case ChatMessage.SERVER_MESSAGE:
+                                currentStyle = getServerStyle();
+                                break;
+                            case ChatMessage.SIGNIN:
+                                currentStyle = getClientConnectStyle();
+                                break;
+                            case ChatMessage.SIGNOUT:
+                                currentStyle = getClientDisconnectStyle();
+                                break;
+                        // case ChatMessage.MESSAGE:
+                        }
+
+                        try {
+                            doc.insertString(doc.getLength(),
+                                    "\n" + message.toString(), currentStyle);
+                        }
+                        catch (BadLocationException e) {
+                            e.printStackTrace();
+                        }
 
                         // Auto-scrolls the JTextPane
-                        int pos = getChatPane().getText().length();
+                        int pos = doc.getLength();
                         getChatPane().setCaretPosition(pos);
                     }
 

@@ -44,11 +44,17 @@ public class ChatMessage implements Serializable {
         this.time = new SimpleDateFormat("HH:mm:ss").format(new Date());
     }
 
+    public int getType () {
+        return type;
+    }
+
     @Override
     public String toString () {
         switch (this.type) {
             case SIGNIN:
-                return this.formatSigninMessage();
+                return this.formatSignInMessage();
+            case SIGNOUT:
+                return this.formatSignOutMessage();
             case SERVER_MESSAGE:
                 return formatServerMessage();
             case MESSAGE:
@@ -58,8 +64,13 @@ public class ChatMessage implements Serializable {
         }
     }
 
-    private String formatSigninMessage () {
+    private String formatSignInMessage () {
         return String.format("[%s] %s joined.",
+                this.time, this.username);
+    }
+
+    private String formatSignOutMessage () {
+        return String.format("[%s] %s disconnected.",
                 this.time, this.username);
     }
 
