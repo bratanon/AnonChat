@@ -10,7 +10,10 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.UUID;
 
-import se.stjerneman.anonchat.utils.ChatMessage;
+import se.stjerneman.anonchat.messages.Message;
+import se.stjerneman.anonchat.messages.ServerMessage;
+import se.stjerneman.anonchat.messages.SignInMessage;
+import se.stjerneman.anonchat.messages.SignOutMessage;
 import se.stjerneman.anonchat.utils.UserList;
 
 /**
@@ -77,7 +80,8 @@ public class Server {
     public void setServerPort (int port) {
         if (port < 1 || port > 65535) {
             // TODO: Log this.
-            System.err.println("Port out of range. Valid range is 1 and 65535");
+            System.err
+                    .println("[ERROR] Port out of range. Valid range is 1 and 65535");
             return;
         }
         this.port = port;
@@ -89,11 +93,11 @@ public class Server {
     public void startServer () {
         if (this.port == 0) {
             // TODO: Log this.
-            System.err.println("There's no port specified.");
+            System.err.println("[ERROR] There's no port specified.");
             return;
         }
         // TODO: Log this.
-        System.out.println("INFO : Server started");
+        System.out.println("[INFO] : Server started");
         this.startListening();
 
         // Adds the possibility for the server to talk to the connected clients.
@@ -115,10 +119,9 @@ public class Server {
             // Add the client thread to the list of connected client threads.
             this.connectedClientsThreads.put(clientUUID, clientThread);
 
-            System.out.println("[DEBUG] : JOIN - " + client.getUsername());
+            System.out.println("[INFO] : JOIN - " + client.getUsername());
 
-            this.broadcastMessage(new ChatMessage(null, client
-                    .getUsername(), ChatMessage.SIGNIN));
+            this.broadcastMessage(new SignInMessage(client.getUsername()));
 
             this.broadcastUserList();
         }
@@ -181,7 +184,7 @@ public class Server {
      * @param message
      *            the message to send to all clients.
      */
-    protected void broadcastMessage (ChatMessage message) {
+    protected void broadcastMessage (Message message) {
         this.broadcast(message, (byte) 1);
     }
 
@@ -212,16 +215,15 @@ public class Server {
 
         if ((ct = this.connectedClients.get(uuid)) != null) {
 
-            System.out.println("[DEBUG] : close client");
+            System.out.println("[INFO] : Closing client socket for " + uuid);
             ct.close();
             this.connectedClients.remove(uuid);
 
-            this.broadcastMessage(new ChatMessage(null, ct.getUsername(),
-                    ChatMessage.SIGNOUT));
+            this.broadcastMessage(new SignOutMessage(ct.getUsername()));
         }
 
         if ((t = this.connectedClientsThreads.get(uuid)) != null) {
-            System.out.println("[DEBUG] : close thread");
+            System.out.println("[INFO] : Closing thread for " + uuid);
             try {
                 // This thread is IO blocked until something is sent to the
                 // client.
@@ -232,10 +234,6 @@ public class Server {
                 this.connectedClientsThreads.remove(uuid);
             }
         }
-
-        System.out.println("Connections:" + this.connectedClients.size());
-        System.out.println("Connections threads:"
-                + this.connectedClientsThreads.size());
 
         this.broadcastUserList();
     }
@@ -264,9 +262,7 @@ public class Server {
             String message = null;
             try {
                 while ((message = input.readLine()) != null) {
-                    ChatMessage cm = new ChatMessage(message, null,
-                            ChatMessage.SERVER_MESSAGE);
-                    broadcastMessage(cm);
+                    broadcastMessage(new ServerMessage(message));
                 }
             }
             catch (IOException e) {

@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import se.stjerneman.anonchat.utils.ChatMessage;
+import se.stjerneman.anonchat.messages.RegularMessage;
 
 /**
  * Client thread.
@@ -66,7 +66,8 @@ class ClientThread implements Runnable {
             this.username = (String) this.input.readObject();
         }
         catch (IOException e) {
-            System.err.println("Couldn't get the username from the client.");
+            System.err
+                    .println("[ERROR] Couldn't get the username from the client.");
             this.server.stopClient(this.uuid);
             // TODO: Log this.
         }
@@ -77,7 +78,7 @@ class ClientThread implements Runnable {
             this.output.writeObject(this.uuid);
         }
         catch (IOException e) {
-            System.err.println("Couldn't send the uuid to the client.");
+            System.err.println("[ERROR] Couldn't send the uuid to the client.");
             this.server.stopClient(this.uuid);
             // TODO: Log this.
         }
@@ -103,13 +104,14 @@ class ClientThread implements Runnable {
                 // Common message.
                 if (sentByte == 1) {
                     String message = (String) this.input.readObject();
-                    ChatMessage cm = new ChatMessage(message, this.username);
-                    this.server.broadcastMessage(cm);
+                    this.server.broadcastMessage(new RegularMessage(
+                            this.username, message));
                 }
             }
         }
         catch (ClassNotFoundException e) {
-            System.err.println("ClassNotFoundException when receiving data.");
+            System.err
+                    .println("[ERROR] ClassNotFoundException when receiving data.");
             // TODO: Log this.
         }
         catch (SocketException e) {
@@ -117,7 +119,7 @@ class ClientThread implements Runnable {
             // TODO: Log this.
         }
         catch (IOException e) {
-            System.err.println("IOException when receiving data.");
+            System.err.println("[ERROR] IOException when receiving data.");
             // TODO: Log this.
         }
         finally {
@@ -134,7 +136,7 @@ class ClientThread implements Runnable {
                     this.clientSocket.getOutputStream());
         }
         catch (IOException e) {
-            System.err.println("Error getting client output stream.");
+            System.err.println("[ERROR] Error getting client output stream.");
             // TODO: Log this.
             this.server.stopClient(this.uuid);
         }
@@ -149,7 +151,7 @@ class ClientThread implements Runnable {
                     this.clientSocket.getInputStream());
         }
         catch (IOException e) {
-            System.err.println("Error getting client input stream.");
+            System.err.println("[ERROR] Error getting client input stream.");
             // TODO: Log this.
             this.server.stopClient(this.uuid);
         }
@@ -169,7 +171,7 @@ class ClientThread implements Runnable {
             this.output.writeObject(object);
         }
         catch (IOException e) {
-            System.err.println("IOException when writing to client.");
+            System.err.println("[ERROR] IOException when writing to client.");
             // TODO: Log this.
             this.server.stopClient(this.uuid);
         }

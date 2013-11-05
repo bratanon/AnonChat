@@ -12,7 +12,9 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
+import java.net.URL;
 
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -28,7 +30,10 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import se.stjerneman.anonchat.client.Client;
-import se.stjerneman.anonchat.utils.ChatMessage;
+import se.stjerneman.anonchat.messages.Message;
+import se.stjerneman.anonchat.messages.ServerMessage;
+import se.stjerneman.anonchat.messages.SignInMessage;
+import se.stjerneman.anonchat.messages.SignOutMessage;
 import se.stjerneman.anonchat.utils.UserList;
 
 import com.jgoodies.forms.factories.FormFactory;
@@ -42,7 +47,7 @@ import com.jgoodies.forms.layout.RowSpec;
  * 
  * 
  */
-public class ClientGUI {
+public class ClientWindow {
     private Client client;
 
     private JFrame frmChat;
@@ -54,7 +59,7 @@ public class ClientGUI {
 
     private Style serverStyle;
     private Style clientConnectStyle;
-    private Style clientDisconnectStyle;;
+    private Style clientDisconnectStyle;
 
     /**
      * Launch the application.
@@ -67,7 +72,7 @@ public class ClientGUI {
                     String UIName = UIManager.getSystemLookAndFeelClassName();
                     UIManager.setLookAndFeel(UIName);
 
-                    ClientGUI window = new ClientGUI();
+                    ClientWindow window = new ClientWindow();
                     window.frmChat.pack();
                     window.frmChat.setLocationRelativeTo(null);
                     window.frmChat.setVisible(true);
@@ -85,21 +90,22 @@ public class ClientGUI {
         this.clientConnectStyle = getChatPane().addStyle("CONNECT", null);
         this.clientDisconnectStyle = getChatPane().addStyle("DISCONNECT", null);
 
-        StyleConstants.setForeground(this.serverStyle, Color.GREEN.darker());
+        StyleConstants.setForeground(this.serverStyle, new Color(0, 181, 173));
         StyleConstants.setBold(this.serverStyle, true);
 
-        StyleConstants.setForeground(this.clientConnectStyle, Color.BLUE);
+        StyleConstants.setForeground(this.clientConnectStyle, new Color(161,
+                207, 100));
         StyleConstants.setItalic(this.clientConnectStyle, true);
 
-        StyleConstants.setForeground(this.clientDisconnectStyle,
-                Color.RED.darker());
+        StyleConstants.setForeground(this.clientDisconnectStyle, new Color(110,
+                207, 245));
         StyleConstants.setItalic(this.clientDisconnectStyle, true);
     }
 
     /**
      * Create the application.
      */
-    public ClientGUI () {
+    public ClientWindow () {
         this.showConnectDialog();
 
         this.initialize();
@@ -141,7 +147,7 @@ public class ClientGUI {
         frmChat.setIconImage(Toolkit
                 .getDefaultToolkit()
                 .getImage(
-                        ClientGUI.class
+                        ClientWindow.class
                                 .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
         frmChat.setTitle("GBJU13 Chat v1.0");
         frmChat.setBounds(100, 100, 450, 300);
@@ -196,7 +202,6 @@ public class ClientGUI {
                     sendMessage();
                     e.consume();
                 }
-
             }
         });
         messageArea.setRows(3);
@@ -220,7 +225,9 @@ public class ClientGUI {
         lblUUID = new JLabel("NO UUID");
         panel_1.add(lblUUID);
 
-        lblUUID.setText(this.client.getUUID());
+        lblUUID.setText(this.client.getUUID() + " ("
+                + this.client.getUsername()
+                + ")");
     }
 
     private void showConnectDialog () {
@@ -251,39 +258,54 @@ public class ClientGUI {
     private class IncommingListener implements Runnable {
         @Override
         public void run () {
-            ChatMessage message;
+            Message message;
 
             try {
                 while (client.isRunning()) {
                     byte sentByte = client.getInputStream().readByte();
 
                     if (sentByte == 1) {
-                        message = (ChatMessage) client.getInputStream()
+                        message = (Message) client.getInputStream()
                                 .readObject();
                         StyledDocument doc = getChatPane()
                                 .getStyledDocument();
 
                         Style currentStyle = null;
 
-                        switch (message.getType()) {
-                            case ChatMessage.SERVER_MESSAGE:
-                                currentStyle = getServerStyle();
-                                break;
-                            case ChatMessage.SIGNIN:
-                                currentStyle = getClientConnectStyle();
-                                break;
-                            case ChatMessage.SIGNOUT:
-                                currentStyle = getClientDisconnectStyle();
-                                break;
-                        // case ChatMessage.MESSAGE:
+                        if (message instanceof ServerMessage) {
+                            currentStyle = getServerStyle();
+                        }
+                        else if (message instanceof SignInMessage) {
+                            currentStyle = getClientConnectStyle();
+                        }
+
+                        else if (message instanceof SignOutMessage) {
+                            currentStyle = getClientDisconnectStyle();
                         }
 
                         try {
-                            doc.insertString(doc.getLength(),
-                                    "\n" + message.toString(), currentStyle);
+                            if (message.getText().equals("#swag")) {
+                                doc.insertString(doc.getLength(), "\n\n\n",
+                                        currentStyle);
+                            }
+                            else {
+                                doc.insertString(doc.getLength(),
+                                        "\n" + message.formatMessage(),
+                                        currentStyle);
+                            }
                         }
                         catch (BadLocationException e) {
                             e.printStackTrace();
+                        }
+
+                        if (message.getText().equals("#swag")) {
+                            URL u = getClass()
+                                    .getResource(
+                                            "/se/stjerneman/anonchat/client/ui/icons/nick.jpeg");
+
+                            getChatPane().insertIcon(new ImageIcon(u));
+
+                            continue;
                         }
 
                         // Auto-scrolls the JTextPane

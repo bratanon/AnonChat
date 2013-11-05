@@ -26,7 +26,7 @@ public class MenuBar {
 
     private Client client;
 
-    private ClientGUI clientGUI;
+    private ClientWindow clientGUI;
 
     private final JMenuBar menuBar = new JMenuBar();
     private JMenu mnChat = new JMenu("Chat");
@@ -43,7 +43,7 @@ public class MenuBar {
 
     private JMenuItem mntmAboutChat = new JMenuItem("About Chat");
 
-    public MenuBar (ClientGUI cgui) {
+    public MenuBar (ClientWindow cgui) {
         this.clientGUI = cgui;
         this.client = Client.getInstance();
         menuBar.add(mnChat);

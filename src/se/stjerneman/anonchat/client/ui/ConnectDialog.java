@@ -108,15 +108,15 @@ public class ConnectDialog extends JDialog {
     }
 
     public String getUsername () {
-        return username.getText();
+        return username.getText().trim();
     }
 
     public int getHostPort () {
-        return Integer.parseInt(hostPort.getText());
+        return Integer.parseInt(hostPort.getText().trim());
     }
 
     public String getHostIP () {
-        return hostIP.getText();
+        return hostIP.getText().trim();
     }
 
     public Client getClient () {
