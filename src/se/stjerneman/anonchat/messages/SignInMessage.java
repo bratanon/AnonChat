@@ -1,22 +1,28 @@
 package se.stjerneman.anonchat.messages;
 
+/**
+ * Handles join messages sent form the server.
+ * 
+ * @author Emil Stjerneman
+ * 
+ */
 public class SignInMessage extends Message {
 
     private static final long serialVersionUID = -3190856996393798233L;
 
-    public SignInMessage (String username) {
-        super(username, "has joined the chat.");
+    /**
+     * SignInMessage Constructor.
+     * 
+     * @param actorName
+     *            the actors username.
+     */
+    public SignInMessage (String actorName) {
+        super(actorName, null);
     }
 
     @Override
     public String formatMessage () {
-        // Set format pattern.
-        this.getDateFormat().applyLocalizedPattern("HH:mm:ss");
-
-        String time = this.getDateFormat().format(this.getDate());
-
-        return String.format("[%s] * %s %s", time, this.getUsername(),
-                this.getText());
+        return String.format("[%s] * %s has joined.", this.getTime(),
+                this.getActorName());
     }
-
 }

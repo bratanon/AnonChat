@@ -224,7 +224,6 @@ public class Client {
      */
     public void sendMessage (String message) {
         try {
-            this.output.writeByte(1);
             this.output.writeObject(message);
         }
         catch (IOException e) {

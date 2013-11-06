@@ -5,19 +5,18 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * Base class for messages.
  * 
  * @author Emil Stjerneman
  * 
  */
-public abstract class Message implements Serializable {
+public class Message implements Serializable {
 
     private static final long serialVersionUID = 335428924161138563L;
 
     /**
-     * The username that is sending this message.
+     * The actors username.
      */
-    private String username;
+    private String actorName;
 
     /**
      * The actual message text.
@@ -25,9 +24,9 @@ public abstract class Message implements Serializable {
     private String text;
 
     /**
-     * Date when this message were sent.
+     * Timestamp when this message were sent.
      */
-    private Date date;
+    private String time;
 
     /**
      * A SimpleDateFormat object that will be used when formating messages.
@@ -37,34 +36,26 @@ public abstract class Message implements Serializable {
     /**
      * Message constructor.
      * 
+     * @param actorName
+     *            the actors username.
      * @param text
      *            the message text.
      */
-    public Message (String text) {
-        this(null, text);
-    }
-
-    /**
-     * Message constructor.
-     * 
-     * @param username
-     *            the username that is sending this message.
-     * @param text
-     *            the message text.
-     */
-    public Message (String username, String text) {
-        this.username = username;
+    public Message (String actorName, String text) {
+        this.actorName = actorName;
         this.text = text;
-        this.date = new Date();
+
+        this.dateFormat.applyLocalizedPattern("HH:mm:ss");
+        this.time = this.dateFormat.format(new Date());
     }
 
     /**
-     * Gets the username who is sending this message.
+     * Gets the actor who is sending this message.
      * 
-     * @return the username who is sending this message.
+     * @return the actor who is sending this message.
      */
-    public String getUsername () {
-        return username;
+    public String getActorName () {
+        return actorName;
     }
 
     /**
@@ -77,21 +68,12 @@ public abstract class Message implements Serializable {
     }
 
     /**
-     * Gets the date when this message were sent.
+     * Gets the timestamp when this message were sent.
      * 
-     * @return the date when this message were sent.
+     * @return the timestamp when this message were sent.
      */
-    public Date getDate () {
-        return date;
-    }
-
-    /**
-     * Gets the SimpleDateFormat object.
-     * 
-     * @return the SimpleDateFormat object for this message.
-     */
-    public SimpleDateFormat getDateFormat () {
-        return dateFormat;
+    public String getTime () {
+        return time;
     }
 
     /**
@@ -99,5 +81,9 @@ public abstract class Message implements Serializable {
      * 
      * @return a nice formated message.
      */
-    public abstract String formatMessage ();
+    public String formatMessage () {
+        return String.format("[%s] <%s> %s", this.getTime(),
+                this.getActorName(), this.getText());
+    }
+
 }

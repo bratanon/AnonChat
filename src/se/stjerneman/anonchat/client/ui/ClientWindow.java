@@ -12,12 +12,12 @@ import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.IOException;
-import java.net.URL;
+import java.net.SocketException;
 
-import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
@@ -30,6 +30,7 @@ import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import se.stjerneman.anonchat.client.Client;
+import se.stjerneman.anonchat.messages.MeMessage;
 import se.stjerneman.anonchat.messages.Message;
 import se.stjerneman.anonchat.messages.ServerMessage;
 import se.stjerneman.anonchat.messages.SignInMessage;
@@ -60,6 +61,7 @@ public class ClientWindow {
     private Style serverStyle;
     private Style clientConnectStyle;
     private Style clientDisconnectStyle;
+    private Style meStyle;
 
     /**
      * Launch the application.
@@ -89,17 +91,21 @@ public class ClientWindow {
         this.serverStyle = getChatPane().addStyle("SERVERMESSAGE", null);
         this.clientConnectStyle = getChatPane().addStyle("CONNECT", null);
         this.clientDisconnectStyle = getChatPane().addStyle("DISCONNECT", null);
+        this.meStyle = getChatPane().addStyle("MEMESSAGE", null);
 
         StyleConstants.setForeground(this.serverStyle, new Color(0, 181, 173));
         StyleConstants.setBold(this.serverStyle, true);
 
-        StyleConstants.setForeground(this.clientConnectStyle, new Color(161,
-                207, 100));
-        StyleConstants.setItalic(this.clientConnectStyle, true);
+        StyleConstants.setForeground(this.clientConnectStyle, new Color(0, 147,
+                0));
+        // StyleConstants.setItalic(this.clientConnectStyle, true);
 
         StyleConstants.setForeground(this.clientDisconnectStyle, new Color(110,
                 207, 245));
-        StyleConstants.setItalic(this.clientDisconnectStyle, true);
+        // StyleConstants.setItalic(this.clientDisconnectStyle, true);
+
+        StyleConstants.setForeground(this.meStyle, new Color(156, 0, 156));
+        StyleConstants.setBold(this.meStyle, true);
     }
 
     /**
@@ -127,6 +133,18 @@ public class ClientWindow {
         return messageArea;
     }
 
+    public JLabel getLblUUID () {
+        return lblUUID;
+    }
+
+    public JButton getBtnSend () {
+        return btnSend;
+    }
+
+    public void startListening () {
+        new Thread(new IncommingListener()).start();
+    }
+
     public Style getServerStyle () {
         return serverStyle;
     }
@@ -137,6 +155,10 @@ public class ClientWindow {
 
     public Style getClientDisconnectStyle () {
         return clientDisconnectStyle;
+    }
+
+    public Style getMeStyle () {
+        return meStyle;
     }
 
     /**
@@ -179,7 +201,6 @@ public class ClientWindow {
         panel.add(scrollPaneChatWindow, BorderLayout.CENTER);
 
         chatPane = new JTextPane();
-        // chatPane.setFont(new Font("Arial", Font.PLAIN, 11));
         chatPane.setEditable(false);
         scrollPaneChatWindow.setViewportView(chatPane);
 
@@ -263,7 +284,6 @@ public class ClientWindow {
             try {
                 while (client.isRunning()) {
                     byte sentByte = client.getInputStream().readByte();
-
                     if (sentByte == 1) {
                         message = (Message) client.getInputStream()
                                 .readObject();
@@ -278,36 +298,21 @@ public class ClientWindow {
                         else if (message instanceof SignInMessage) {
                             currentStyle = getClientConnectStyle();
                         }
-
                         else if (message instanceof SignOutMessage) {
                             currentStyle = getClientDisconnectStyle();
                         }
+                        else if (message instanceof MeMessage) {
+                            currentStyle = getMeStyle();
+                        }
 
                         try {
-                            if (message.getText().equals("#swag")) {
-                                doc.insertString(doc.getLength(), "\n\n\n",
-                                        currentStyle);
-                            }
-                            else {
-                                doc.insertString(doc.getLength(),
-                                        "\n" + message.formatMessage(),
-                                        currentStyle);
-                            }
+                            doc.insertString(doc.getLength(),
+                                    "\n" + message.formatMessage(),
+                                    currentStyle);
                         }
                         catch (BadLocationException e) {
                             e.printStackTrace();
                         }
-
-                        if (message.getText().equals("#swag")) {
-                            URL u = getClass()
-                                    .getResource(
-                                            "/se/stjerneman/anonchat/client/ui/icons/nick.jpeg");
-
-                            getChatPane().insertIcon(new ImageIcon(u));
-
-                            continue;
-                        }
-
                         // Auto-scrolls the JTextPane
                         int pos = doc.getLength();
                         getChatPane().setCaretPosition(pos);
@@ -323,6 +328,16 @@ public class ClientWindow {
             catch (ClassNotFoundException e) {
                 e.printStackTrace();
             }
+            catch (SocketException e) {
+                getMessageArea().setEnabled(false);
+                getChatPane().setEnabled(false);
+                getBtnSend().setEnabled(false);
+                UserListGUI.getInstance().getUserListModel().clear();
+
+                JOptionPane.showMessageDialog(null, "You got disconnected.",
+                        "SocketException", JOptionPane.INFORMATION_MESSAGE);
+
+            }
             catch (IOException e) {
                 if (client.isRunning()) {
                     // TODO: Log this!
@@ -331,17 +346,5 @@ public class ClientWindow {
                 }
             }
         }
-    }
-
-    public JLabel getLblUUID () {
-        return lblUUID;
-    }
-
-    public JButton getBtnSend () {
-        return btnSend;
-    }
-
-    public void startListening () {
-        new Thread(new IncommingListener()).start();
     }
 }

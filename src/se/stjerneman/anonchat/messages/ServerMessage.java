@@ -1,20 +1,27 @@
 package se.stjerneman.anonchat.messages;
 
+/**
+ * Handles regular messages sent from the server.
+ * 
+ * @author Emil Stjerneman
+ * 
+ */
 public class ServerMessage extends Message {
 
     private static final long serialVersionUID = 8160856092267344980L;
 
+    /**
+     * ServerMessage constructor.
+     * 
+     * @param text
+     *            the message text.
+     */
     public ServerMessage (String text) {
-        super(text);
+        super(null, text);
     }
 
     @Override
     public String formatMessage () {
-        // Set format pattern.
-        this.getDateFormat().applyLocalizedPattern("HH:mm:ss");
-
-        String time = this.getDateFormat().format(this.getDate());
-
-        return String.format("[%s] * %s", time, this.getText());
+        return String.format("[%s] * ", this.getTime(), this.getText());
     }
 }

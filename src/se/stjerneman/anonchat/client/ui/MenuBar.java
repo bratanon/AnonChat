@@ -101,7 +101,7 @@ public class MenuBar {
                 clientGUI.getMessageArea().setText("");
                 clientGUI.getMessageArea().setEnabled(false);
 
-                clientGUI.getChatPane().setText("Disconnected...");
+                // clientGUI.getChatPane().setText("Disconnected...");
                 clientGUI.getChatPane().setEnabled(false);
 
                 clientGUI.getBtnSend().setEnabled(false);

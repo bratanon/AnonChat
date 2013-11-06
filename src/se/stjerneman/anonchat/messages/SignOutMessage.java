@@ -1,23 +1,28 @@
 package se.stjerneman.anonchat.messages;
 
-
+/**
+ * Handles join messages sent form the server.
+ * 
+ * @author Emil Stjerneman
+ * 
+ */
 public class SignOutMessage extends Message {
 
     private static final long serialVersionUID = 4821167512462886782L;
 
-    public SignOutMessage (String username) {
-        super(username, "has disconnected.");
+    /**
+     * SignInMessage Constructor.
+     * 
+     * @param actorName
+     *            the actors username.
+     */
+    public SignOutMessage (String actorName) {
+        super(actorName, null);
     }
 
     @Override
     public String formatMessage () {
-        // Set format pattern.
-        this.getDateFormat().applyLocalizedPattern("HH:mm:ss");
-
-        String time = this.getDateFormat().format(this.getDate());
-
-        return String.format("[%s] * %s %s", time, this.getUsername(),
-                this.getText());
+        return String.format("[%s] * %s has disconnected.", this.getTime(),
+                this.getActorName());
     }
-
 }

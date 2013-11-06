@@ -6,7 +6,7 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 import java.net.SocketException;
 
-import se.stjerneman.anonchat.messages.RegularMessage;
+import se.stjerneman.anonchat.messages.Message;
 
 /**
  * Client thread.
@@ -66,12 +66,13 @@ class ClientThread implements Runnable {
             this.username = (String) this.input.readObject();
         }
         catch (IOException e) {
-            System.err
-                    .println("[ERROR] Couldn't get the username from the client.");
+            System.err.println("[ERROR] Couldn't get the username from the"
+                    + "client.");
             this.server.stopClient(this.uuid);
-            // TODO: Log this.
         }
-        catch (ClassNotFoundException e) {}
+        catch (ClassNotFoundException e) {
+            // Will never happen as String is in the java core.
+        }
 
         // Send the UUID to the client.
         try {
@@ -80,7 +81,6 @@ class ClientThread implements Runnable {
         catch (IOException e) {
             System.err.println("[ERROR] Couldn't send the uuid to the client.");
             this.server.stopClient(this.uuid);
-            // TODO: Log this.
         }
 
     }
@@ -100,27 +100,24 @@ class ClientThread implements Runnable {
     public void run () {
         try {
             while (!this.clientSocket.isInputShutdown()) {
-                byte sentByte = this.input.readByte();
-                // Common message.
-                if (sentByte == 1) {
-                    String message = (String) this.input.readObject();
-                    this.server.broadcastMessage(new RegularMessage(
-                            this.username, message));
+                String text = (String) this.input.readObject();
+
+                if (Command.isCommand(text)) {
+                    Command.process(text, this.username);
+                    continue;
                 }
+
+                this.server.broadcastMessage(new Message(this.username, text));
             }
         }
         catch (ClassNotFoundException e) {
-            System.err
-                    .println("[ERROR] ClassNotFoundException when receiving data.");
-            // TODO: Log this.
+            // Will never happen as String is in the java core.
         }
         catch (SocketException e) {
             this.server.stopClient(this.uuid);
-            // TODO: Log this.
         }
         catch (IOException e) {
-            System.err.println("[ERROR] IOException when receiving data.");
-            // TODO: Log this.
+            // Client probably disconnected.
         }
         finally {
             this.server.stopClient(this.uuid);
@@ -137,7 +134,6 @@ class ClientThread implements Runnable {
         }
         catch (IOException e) {
             System.err.println("[ERROR] Error getting client output stream.");
-            // TODO: Log this.
             this.server.stopClient(this.uuid);
         }
     }
@@ -152,7 +148,6 @@ class ClientThread implements Runnable {
         }
         catch (IOException e) {
             System.err.println("[ERROR] Error getting client input stream.");
-            // TODO: Log this.
             this.server.stopClient(this.uuid);
         }
     }
@@ -172,9 +167,18 @@ class ClientThread implements Runnable {
         }
         catch (IOException e) {
             System.err.println("[ERROR] IOException when writing to client.");
-            // TODO: Log this.
             this.server.stopClient(this.uuid);
         }
+    }
+
+    /**
+     * Changes the username for this client.
+     * 
+     * @param new_username
+     *            the new username.
+     */
+    protected void changeUserName (String new_username) {
+        this.username = new_username;
     }
 
     /**
@@ -185,7 +189,7 @@ class ClientThread implements Runnable {
             this.clientSocket.close();
         }
         catch (IOException e) {
-            // TODO: Do we need to handle this?
+            // Don't handle this.
         }
     }
 }

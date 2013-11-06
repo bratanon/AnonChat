@@ -25,6 +25,9 @@ import com.jgoodies.forms.layout.FormLayout;
 import com.jgoodies.forms.layout.RowSpec;
 
 public class ConnectDialog extends JDialog {
+
+    private static final long serialVersionUID = -4911605103198889817L;
+
     private final JTextField username;
     private final JTextField hostPort;
     private final JTextField hostIP;
@@ -133,23 +136,18 @@ public class ConnectDialog extends JDialog {
         }
         catch (UnknownHostException e) {
             String host = this.getHostIP() + ":" + this.getHostPort();
-            JOptionPane.showMessageDialog(this, "Could't find the host ("
-                    + host + ").", "Error", JOptionPane.ERROR_MESSAGE);
+            this.showErrorMessage("Could't find the host (" + host + ").");
             return false;
         }
         catch (IOException e) {
-            JOptionPane.showMessageDialog(this,
-                    "Error when connecting to host.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            this.showErrorMessage("Error when connecting to host.");
             return false;
         }
         catch (NullPointerException e) {
             System.out.println(e.getMessage());
-            JOptionPane.showMessageDialog(this, "No username given.", "Error",
-                    JOptionPane.ERROR_MESSAGE);
+            this.showErrorMessage("No username given.");
             return false;
         }
-
     }
 
     private boolean validateTextFields () {
@@ -179,6 +177,17 @@ public class ConnectDialog extends JDialog {
             JTextField field = (JTextField) e.getComponent();
             field.setBackground(new Color(255, 255, 255));
         }
+    }
+
+    /**
+     * Shows an error message to the user.
+     * 
+     * @param text
+     *            the message text.
+     */
+    private void showErrorMessage (String text) {
+        JOptionPane.showMessageDialog(this, text, "Error",
+                JOptionPane.ERROR_MESSAGE);
     }
 
 }
