@@ -1,5 +1,6 @@
 package se.stjerneman.anonchat.client.ui;
 
+import java.awt.Font;
 import java.util.List;
 
 import javax.swing.DefaultListModel;
@@ -35,6 +36,7 @@ public class UserListGUI {
 
         this.userListModel = new DefaultListModel<String>();
         userList = new JList<String>();
+        userList.setFont(new Font("Tahoma", Font.PLAIN, 13));
         userList.setModel(this.userListModel);
         scrollPaneUserList.setViewportView(userList);
     }

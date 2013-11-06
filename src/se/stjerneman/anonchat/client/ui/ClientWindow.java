@@ -1,11 +1,9 @@
 package se.stjerneman.anonchat.client.ui;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -26,15 +24,10 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Style;
-import javax.swing.text.StyleConstants;
 import javax.swing.text.StyledDocument;
 
 import se.stjerneman.anonchat.client.Client;
-import se.stjerneman.anonchat.messages.MeMessage;
 import se.stjerneman.anonchat.messages.Message;
-import se.stjerneman.anonchat.messages.ServerMessage;
-import se.stjerneman.anonchat.messages.SignInMessage;
-import se.stjerneman.anonchat.messages.SignOutMessage;
 import se.stjerneman.anonchat.utils.UserList;
 
 import com.jgoodies.forms.factories.FormFactory;
@@ -87,27 +80,6 @@ public class ClientWindow {
         });
     }
 
-    private void setupColors () {
-        this.serverStyle = getChatPane().addStyle("SERVERMESSAGE", null);
-        this.clientConnectStyle = getChatPane().addStyle("CONNECT", null);
-        this.clientDisconnectStyle = getChatPane().addStyle("DISCONNECT", null);
-        this.meStyle = getChatPane().addStyle("MEMESSAGE", null);
-
-        StyleConstants.setForeground(this.serverStyle, new Color(0, 181, 173));
-        StyleConstants.setBold(this.serverStyle, true);
-
-        StyleConstants.setForeground(this.clientConnectStyle, new Color(0, 147,
-                0));
-        // StyleConstants.setItalic(this.clientConnectStyle, true);
-
-        StyleConstants.setForeground(this.clientDisconnectStyle, new Color(110,
-                207, 245));
-        // StyleConstants.setItalic(this.clientDisconnectStyle, true);
-
-        StyleConstants.setForeground(this.meStyle, new Color(156, 0, 156));
-        StyleConstants.setBold(this.meStyle, true);
-    }
-
     /**
      * Create the application.
      */
@@ -115,8 +87,6 @@ public class ClientWindow {
         this.showConnectDialog();
 
         this.initialize();
-
-        this.setupColors();
 
         this.startListening();
     }
@@ -201,6 +171,7 @@ public class ClientWindow {
         panel.add(scrollPaneChatWindow, BorderLayout.CENTER);
 
         chatPane = new JTextPane();
+        chatPane.setFont(UIManager.getFont("TextArea.font"));
         chatPane.setEditable(false);
         scrollPaneChatWindow.setViewportView(chatPane);
 
@@ -210,7 +181,6 @@ public class ClientWindow {
         panel.add(scrollPaneMessage, BorderLayout.SOUTH);
 
         messageArea = new JTextArea();
-        messageArea.setFont(new Font("Arial", Font.PLAIN, 12));
         messageArea.setWrapStyleWord(true);
         messageArea.addKeyListener(new KeyAdapter() {
             @Override
@@ -225,7 +195,7 @@ public class ClientWindow {
                 }
             }
         });
-        messageArea.setRows(3);
+        messageArea.setRows(2);
         scrollPaneMessage.setViewportView(messageArea);
         frmChat.getContentPane().add(
                 UserListGUI.getInstance().getScrollPaneUserList(),
@@ -279,41 +249,26 @@ public class ClientWindow {
     private class IncommingListener implements Runnable {
         @Override
         public void run () {
-            Message message;
+            Message msg;
 
             try {
                 while (client.isRunning()) {
                     byte sentByte = client.getInputStream().readByte();
+
                     if (sentByte == 1) {
-                        message = (Message) client.getInputStream()
-                                .readObject();
-                        StyledDocument doc = getChatPane()
-                                .getStyledDocument();
+                        msg = (Message) client.getInputStream().readObject();
+                        StyledDocument doc = getChatPane().getStyledDocument();
 
-                        Style currentStyle = null;
-
-                        if (message instanceof ServerMessage) {
-                            currentStyle = getServerStyle();
-                        }
-                        else if (message instanceof SignInMessage) {
-                            currentStyle = getClientConnectStyle();
-                        }
-                        else if (message instanceof SignOutMessage) {
-                            currentStyle = getClientDisconnectStyle();
-                        }
-                        else if (message instanceof MeMessage) {
-                            currentStyle = getMeStyle();
-                        }
-
+                        String text = "\n" + msg.formatMessage();
                         try {
-                            doc.insertString(doc.getLength(),
-                                    "\n" + message.formatMessage(),
-                                    currentStyle);
+                            doc.insertString(doc.getLength(), text,
+                                    msg.getStyle(doc));
                         }
                         catch (BadLocationException e) {
                             e.printStackTrace();
+                            // TODO: Inform user?
                         }
-                        // Auto-scrolls the JTextPane
+
                         int pos = doc.getLength();
                         getChatPane().setCaretPosition(pos);
                     }

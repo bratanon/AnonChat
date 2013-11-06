@@ -292,14 +292,6 @@ public class Server {
     }
 
     /**
-     * Removes disconnected clients from the list and closes their threads and
-     * streams.
-     */
-    // private void removeDisconnectedClients () {
-    // // TODO: Create this.
-    // }
-
-    /**
      * Provide the server with the possibility to talk to all clients.
      * 
      * @author Emil Stjerneman
@@ -315,6 +307,7 @@ public class Server {
             String message = null;
             try {
                 while ((message = input.readLine()) != null) {
+                    System.out.println("MSG 1 :" + message);
                     broadcast(new ServerMessage(message), (byte) 1);
                 }
             }

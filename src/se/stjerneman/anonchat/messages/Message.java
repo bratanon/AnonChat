@@ -4,6 +4,9 @@ import java.io.Serializable;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import javax.swing.text.Style;
+import javax.swing.text.StyledDocument;
+
 /**
  * 
  * @author Emil Stjerneman
@@ -45,8 +48,8 @@ public class Message implements Serializable {
         this.actorName = actorName;
         this.text = text;
 
-        this.dateFormat.applyLocalizedPattern("HH:mm:ss");
-        this.time = this.dateFormat.format(new Date());
+        dateFormat.applyLocalizedPattern("HH:mm:ss");
+        time = dateFormat.format(new Date());
     }
 
     /**
@@ -82,8 +85,31 @@ public class Message implements Serializable {
      * @return a nice formated message.
      */
     public String formatMessage () {
-        return String.format("[%s] <%s> %s", this.getTime(),
-                this.getActorName(), this.getText());
+        return String.format("[%s] <%s> %s", getTime(), getActorName(),
+                getText());
+    }
+
+    /**
+     * Gets the <code>Style</code> for this message.
+     * 
+     * @param doc
+     *            a document model.
+     * @return a <code>Style</code>.
+     */
+    public Style getStyle (StyledDocument doc) {
+        return null;
+    }
+
+    /**
+     * Sets the <code>Style</code> for this message.
+     * 
+     * @param doc
+     *            a document model.
+     * 
+     * @return a <code>Style</code>.
+     */
+    public Style setStyle (StyledDocument doc) {
+        return null;
     }
 
 }
