@@ -49,9 +49,10 @@ public class Client {
      */
     private ObjectOutputStream output;
 
+    /**
+     * This clients UUID.
+     */
     private String uuid;
-
-    private boolean running;
 
     /**
      * Client constructor.
@@ -118,14 +119,6 @@ public class Client {
         return uuid;
     }
 
-    public boolean isRunning () {
-        return running;
-    }
-
-    public void setRunning (boolean running) {
-        this.running = running;
-    }
-
     /**
      * Starts the client.
      * 
@@ -133,9 +126,13 @@ public class Client {
      *            the host to connect to.
      * @param port
      *            the port the host is listening to.
-     * @throws IOException
+     * 
      * @throws UnknownHostException
+     *             if the IP address of the host could not be determined.
      * @throws NullPointerException
+     *             if the client username is empty.
+     * @throws IOException
+     *             if an I/O error occurs when creating the socket.
      */
     public void startRunning (String host, int port)
             throws UnknownHostException, IOException, NullPointerException {
@@ -149,8 +146,6 @@ public class Client {
         System.out.println("INFO :  Client started.");
 
         this.connectToHost();
-
-        this.setRunning(true);
 
         this.setupOutputStream();
         this.setupInputStream();
@@ -166,6 +161,48 @@ public class Client {
             System.err.println("Couldn't get the uuid from the server.");
         }
         catch (ClassNotFoundException e) {}
+    }
+
+    /**
+     * Sends a message to the server.
+     * 
+     * @param message
+     *            a message to send to the server.
+     */
+    public void sendMessage (String message) {
+        try {
+            this.output.writeObject(message);
+        }
+        catch (IOException e) {
+            System.err.println("Couldn't send the message to the server.");
+            // TODO: Log this!
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Connect the client.
+     * 
+     * @throws UnknownHostException
+     *             if the IP address of the host could not be determined.
+     * @throws NullPointerException
+     *             if the client username is empty.
+     * @throws IOException
+     *             if an I/O error occurs when creating the socket.
+     */
+    public void connect () throws UnknownHostException, NullPointerException,
+            IOException {
+        this.startRunning(this.host, this.port);
+    }
+
+    /**
+     * Disconnects this client.
+     */
+    public void disconnect () {
+        try {
+            this.socket.close();
+        }
+        catch (IOException e) {}
     }
 
     /**
@@ -214,35 +251,5 @@ public class Client {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
-    }
-
-    /**
-     * Sends a message to the server.
-     * 
-     * @param message
-     *            a message to send to the server.
-     */
-    public void sendMessage (String message) {
-        try {
-            this.output.writeObject(message);
-        }
-        catch (IOException e) {
-            System.err.println("Couldn't send the message to the server.");
-            // TODO: Log this!
-            e.printStackTrace();
-        }
-    }
-
-    public void disconnect () {
-        this.setRunning(false);
-        try {
-            this.socket.close();
-        }
-        catch (IOException e) {}
-    }
-
-    public void connect () throws UnknownHostException, NullPointerException,
-            IOException {
-        this.startRunning(this.host, this.port);
     }
 }

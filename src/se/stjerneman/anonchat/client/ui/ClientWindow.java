@@ -253,7 +253,7 @@ public class ClientWindow {
             Message msg;
 
             try {
-                while (client.isRunning()) {
+                while (true) {
                     byte sentByte = client.getInputStream().readByte();
 
                     if (sentByte == 1) {
@@ -295,11 +295,9 @@ public class ClientWindow {
 
             }
             catch (IOException e) {
-                if (client.isRunning()) {
-                    // TODO: Log this!
-                    System.err.println(e.getMessage());
-                    e.printStackTrace();
-                }
+                // TODO: Log this!
+                System.err.println(e.getMessage());
+                e.printStackTrace();
             }
         }
     }
