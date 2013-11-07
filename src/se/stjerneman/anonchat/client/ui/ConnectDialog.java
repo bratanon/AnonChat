@@ -38,6 +38,7 @@ public class ConnectDialog extends JDialog {
      * Create the dialog.
      */
     public ConnectDialog () {
+        setIconImages(ApplicationIcons.getIcons());
         setMinimumSize(new Dimension(280, 150));
         setTitle("Connect to server");
         setBounds(100, 100, 280, 150);

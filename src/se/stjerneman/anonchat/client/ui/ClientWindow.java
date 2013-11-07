@@ -4,7 +4,6 @@ import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.FlowLayout;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyAdapter;
@@ -136,11 +135,13 @@ public class ClientWindow {
      */
     private void initialize () {
         frmChat = new JFrame();
-        frmChat.setIconImage(Toolkit
-                .getDefaultToolkit()
-                .getImage(
-                        ClientWindow.class
-                                .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
+
+        frmChat.setIconImages(ApplicationIcons.getIcons());
+        // frmChat.setIconImage(Toolkit
+        // .getDefaultToolkit()
+        // .getImage(
+        // ClientWindow.class
+        // .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
         frmChat.setTitle("GBJU13 Chat v1.0");
         frmChat.setBounds(100, 100, 450, 300);
         frmChat.setJMenuBar(new MenuBar(this).getMenuBar());

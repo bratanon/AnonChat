@@ -41,7 +41,8 @@ public class MenuBar {
     private JCheckBoxMenuItem mntmShowUsers = new JCheckBoxMenuItem(
             "Show users");
 
-    private JMenuItem mntmAboutChat = new JMenuItem("About Chat");
+    private JMenuItem mntmAboutChat = new JMenuItem("About AnonChat");
+    private JMenuItem mntmLicens = new JMenuItem("Licens");
 
     public MenuBar (ClientWindow cgui) {
         this.clientGUI = cgui;
@@ -59,6 +60,7 @@ public class MenuBar {
 
         mnView.add(mntmShowUsers);
 
+        mnHelp.add(mntmLicens);
         mnHelp.add(mntmAboutChat);
 
         mntmShowUsers.setSelected(true);
@@ -113,6 +115,12 @@ public class MenuBar {
         mntmExit.addActionListener(new ActionListener() {
             public void actionPerformed (ActionEvent event) {
                 System.exit(0);
+            }
+        });
+
+        mntmLicens.addActionListener(new ActionListener() {
+            public void actionPerformed (ActionEvent event) {
+                new LicensDialog().setVisible(true);
             }
         });
 

@@ -1,102 +1,84 @@
 package se.stjerneman.anonchat.client.ui;
 
 import java.awt.BorderLayout;
-import java.awt.EventQueue;
-import java.awt.Toolkit;
+import java.awt.Color;
+import java.awt.FlowLayout;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
 import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
-import javax.swing.JTextPane;
-import javax.swing.UIManager;
-
-import com.jgoodies.forms.factories.FormFactory;
-import com.jgoodies.forms.layout.ColumnSpec;
-import com.jgoodies.forms.layout.FormLayout;
-import com.jgoodies.forms.layout.RowSpec;
+import javax.swing.border.MatteBorder;
 
 public class AboutDialog extends JDialog {
-    /**
-     * @wbp.nonvisual location=441,-31
-     */
-    private final JLabel label = new JLabel("New label");
 
     /**
-     * Launch the application.
+     * 
      */
-    public static void main (String[] args) {
-        EventQueue.invokeLater(new Runnable() {
-            public void run () {
-                try {
-                    AboutDialog dialog = new AboutDialog();
-                    dialog.setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
-                    dialog.setVisible(true);
-                }
-                catch (Exception e) {
-                    e.printStackTrace();
-                }
-            }
-        });
-    }
+    private static final long serialVersionUID = 5576803747588972025L;
 
     /**
      * Create the dialog.
      */
     public AboutDialog () {
+        setIconImages(ApplicationIcons.getIcons());
         setModalityType(ModalityType.APPLICATION_MODAL);
-        setAlwaysOnTop(true);
-        setIconImage(Toolkit
-                .getDefaultToolkit()
-                .getImage(
-                        AboutDialog.class
-                                .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
+
         setResizable(false);
-        setTitle("About Chat");
-        setBounds(100, 100, 624, 448);
+        setTitle("About AnonChat");
+        setBounds(100, 100, 267, 231);
+        getContentPane().setLayout(new BorderLayout(0, 0));
 
-        JPanel panel = new JPanel();
-        getContentPane().add(panel, BorderLayout.CENTER);
-        panel.setLayout(new FormLayout(new ColumnSpec[] {
-                FormFactory.DEFAULT_COLSPEC,
-                FormFactory.RELATED_GAP_COLSPEC,
-                ColumnSpec.decode("364px:grow"),
-                FormFactory.RELATED_GAP_COLSPEC,
-                ColumnSpec.decode("167px:grow"),
-                FormFactory.RELATED_GAP_COLSPEC,
-                FormFactory.DEFAULT_COLSPEC, },
-                new RowSpec[] {
-                        FormFactory.LINE_GAP_ROWSPEC,
-                        RowSpec.decode("147px"),
-                        FormFactory.RELATED_GAP_ROWSPEC,
-                        RowSpec.decode("default:grow"),
-                        FormFactory.RELATED_GAP_ROWSPEC, }));
+        JPanel contentPanel = new JPanel();
+        contentPanel.setBackground(Color.WHITE);
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+        contentPanel.setLayout(null);
 
-        JTextPane textInfo = new JTextPane();
-        textInfo.setEditable(false);
-        textInfo.setFocusable(false);
-        textInfo.setBackground(UIManager.getColor("ScrollPane.background"));
-        textInfo.setText("GBJU13 Chat v1.0\r\n\r\nBuilt for the higher grade in the GUI course.\r\n\r\nCopyright \u00A9 2013 Emil Stjerneman <emil@stjerneman.com>\r\n\r\nThis work is free. You can redistribute it and/or modify it under the\r\nterms of the Do What The Fuck You Want To Public License, Version 2,\r\nas published by Sam Hocevar. See http://www.wtfpl.net/ for more details.");
-        panel.add(textInfo, "3, 2, fill, top");
+        JLabel lblTitle = new JLabel("AnonChat");
+        lblTitle.setFont(new Font("Tahoma", Font.PLAIN, 30));
+        lblTitle.setForeground(new Color(0, 0, 128));
+        lblTitle.setBounds(104, 11, 129, 37);
+        contentPanel.add(lblTitle);
 
-        JLabel lblNewLabel = new JLabel("");
-        lblNewLabel
-                .setIcon(new ImageIcon(
-                        AboutDialog.class
-                                .getResource("/se/stjerneman/anonchat/client/ui/icons/chat.png")));
-        panel.add(lblNewLabel, "5, 2, right, top");
+        JLabel lblImage = new JLabel("");
+        lblImage.setIcon(new ImageIcon(
+                AboutDialog.class
+                        .getResource("/se/stjerneman/anonchat/client/ui/icons/chatIcon64.png")));
+        lblImage.setBounds(10, 11, 64, 64);
+        contentPanel.add(lblImage);
 
-        JScrollPane scrollPane = new JScrollPane();
-        panel.add(scrollPane, "3, 4, 3, 1, fill, fill");
+        JLabel lblCopywrite = new JLabel(
+                "Copyright \u00A9 2013 Emil Stjerneman\r\n");
+        lblCopywrite.setBounds(47, 94, 166, 14);
+        contentPanel.add(lblCopywrite);
 
-        JTextArea txtrDoWhatThe = new JTextArea();
-        txtrDoWhatThe.setEditable(false);
-        txtrDoWhatThe
-                .setText("            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE\r\n                    Version 2, December 2004\r\n\r\n Copyright (C) 2004 Sam Hocevar <sam@hocevar.net>\r\n\r\n Everyone is permitted to copy and distribute verbatim or modified\r\n copies of this license document, and changing it is allowed as long\r\n as the name is changed.\r\n\r\n            DO WHAT THE FUCK YOU WANT TO PUBLIC LICENSE\r\n   TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION\r\n\r\n  0. You just DO WHAT THE FUCK YOU WANT TO.");
-        scrollPane.setViewportView(txtrDoWhatThe);
+        JLabel lblVersion = new JLabel("version 1.0");
+        lblVersion.setForeground(Color.GRAY);
+        lblVersion.setBounds(179, 49, 54, 14);
+        contentPanel.add(lblVersion);
+
+        JLabel lblBuiltForThe = new JLabel(
+                "Built for the higher grade in the GUI course.");
+        lblBuiltForThe.setForeground(Color.LIGHT_GRAY);
+        lblBuiltForThe.setBounds(23, 119, 210, 14);
+        contentPanel.add(lblBuiltForThe);
+
+        JPanel buttonPane = new JPanel();
+        buttonPane.setBorder(new MatteBorder(1, 0, 0, 0, (Color) Color.GRAY));
+        getContentPane().add(buttonPane, BorderLayout.SOUTH);
+        buttonPane.setLayout(new FlowLayout(FlowLayout.RIGHT, 5, 5));
+
+        JButton btnClose = new JButton("Close");
+        btnClose.addActionListener(new ActionListener() {
+            public void actionPerformed (ActionEvent e) {
+                dispose();
+            }
+        });
+        buttonPane.add(btnClose);
 
     }
-
 }
