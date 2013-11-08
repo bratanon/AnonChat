@@ -14,6 +14,11 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.MatteBorder;
 
+import com.jgoodies.forms.factories.FormFactory;
+import com.jgoodies.forms.layout.ColumnSpec;
+import com.jgoodies.forms.layout.FormLayout;
+import com.jgoodies.forms.layout.RowSpec;
+
 public class AboutDialog extends JDialog {
 
     /**
@@ -27,45 +32,52 @@ public class AboutDialog extends JDialog {
     public AboutDialog () {
         setIconImages(ApplicationIcons.getIcons());
         setModalityType(ModalityType.APPLICATION_MODAL);
-
+        setLocationRelativeTo(null);
         setResizable(false);
         setTitle("About AnonChat");
-        setBounds(100, 100, 267, 231);
         getContentPane().setLayout(new BorderLayout(0, 0));
 
         JPanel contentPanel = new JPanel();
         contentPanel.setBackground(Color.WHITE);
-        getContentPane().add(contentPanel, BorderLayout.CENTER);
-        contentPanel.setLayout(null);
+        getContentPane().add(contentPanel);
+        contentPanel.setLayout(new FormLayout(new ColumnSpec[] {
+                FormFactory.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("max(56dlu;default)"),
+                FormFactory.RELATED_GAP_COLSPEC,
+                ColumnSpec.decode("max(97dlu;default)"),
+                FormFactory.RELATED_GAP_COLSPEC, },
+                new RowSpec[] {
+                        FormFactory.RELATED_GAP_ROWSPEC,
+                        RowSpec.decode("fill:default"),
+                        FormFactory.RELATED_GAP_ROWSPEC,
+                        RowSpec.decode("fill:max(11dlu;default)"),
+                        RowSpec.decode("20dlu"),
+                        FormFactory.DEFAULT_ROWSPEC,
+                        FormFactory.RELATED_GAP_ROWSPEC,
+                        FormFactory.DEFAULT_ROWSPEC,
+                        FormFactory.RELATED_GAP_ROWSPEC, }));
 
-        JLabel lblTitle = new JLabel("AnonChat");
-        lblTitle.setFont(new Font("Tahoma", Font.PLAIN, 30));
-        lblTitle.setForeground(new Color(0, 0, 128));
-        lblTitle.setBounds(104, 11, 129, 37);
-        contentPanel.add(lblTitle);
-
-        JLabel lblImage = new JLabel("");
-        lblImage.setIcon(new ImageIcon(
+        JLabel image = new JLabel("");
+        image.setIcon(new ImageIcon(
                 AboutDialog.class
                         .getResource("/se/stjerneman/anonchat/client/ui/icons/chatIcon64.png")));
-        lblImage.setBounds(10, 11, 64, 64);
-        contentPanel.add(lblImage);
+        contentPanel.add(image, "2, 2, 2, 4, left, top");
 
-        JLabel lblCopywrite = new JLabel(
-                "Copyright \u00A9 2013 Emil Stjerneman\r\n");
-        lblCopywrite.setBounds(47, 94, 166, 14);
-        contentPanel.add(lblCopywrite);
+        JLabel lblAnonchat = new JLabel("AnonChat");
+        lblAnonchat.setFont(new Font("Tahoma", Font.BOLD, 22));
+        contentPanel.add(lblAnonchat, "4, 2, right, default");
 
-        JLabel lblVersion = new JLabel("version 1.0");
-        lblVersion.setForeground(Color.GRAY);
-        lblVersion.setBounds(179, 49, 54, 14);
-        contentPanel.add(lblVersion);
+        JLabel lblNewLabel = new JLabel("version 1.0");
+        lblNewLabel.setForeground(Color.GRAY);
+        contentPanel.add(lblNewLabel, "4, 4, right, default");
+
+        JLabel lblCopywrite = new JLabel("Copyright © 2013 Emil Stjerneman");
+        contentPanel.add(lblCopywrite, "2, 6, 3, 1, center, default");
 
         JLabel lblBuiltForThe = new JLabel(
                 "Built for the higher grade in the GUI course.");
-        lblBuiltForThe.setForeground(Color.LIGHT_GRAY);
-        lblBuiltForThe.setBounds(23, 119, 210, 14);
-        contentPanel.add(lblBuiltForThe);
+        lblBuiltForThe.setForeground(Color.GRAY);
+        contentPanel.add(lblBuiltForThe, "2, 8, 3, 1, center, default");
 
         JPanel buttonPane = new JPanel();
         buttonPane.setBorder(new MatteBorder(1, 0, 0, 0, (Color) Color.GRAY));
@@ -80,5 +92,6 @@ public class AboutDialog extends JDialog {
         });
         buttonPane.add(btnClose);
 
+        pack();
     }
 }

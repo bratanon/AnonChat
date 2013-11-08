@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -17,7 +18,6 @@ import se.stjerneman.anonchat.messages.Message;
 import se.stjerneman.anonchat.messages.ServerMessage;
 import se.stjerneman.anonchat.messages.SignInMessage;
 import se.stjerneman.anonchat.messages.SignOutMessage;
-import se.stjerneman.anonchat.utils.UserList;
 
 /**
  * A singleton server class.
@@ -194,12 +194,12 @@ public class Server {
      */
     // TODO : Rename.
     private void broadcastUserList () {
-        UserList userList = new UserList();
+        List<String> clientNames = new ArrayList<String>();
         for (Entry<String, ClientThread> entry : this.clients.entrySet()) {
-            userList.add(entry.getValue().getUsername());
+            clientNames.add(entry.getValue().getUsername());
         }
 
-        this.broadcast(userList, (byte) 2);
+        this.broadcast(clientNames, (byte) 2);
     }
 
     /**

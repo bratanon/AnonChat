@@ -6,13 +6,11 @@ import java.awt.event.InputEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
 import java.awt.event.KeyEvent;
-import java.io.IOException;
 
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
 import javax.swing.KeyStroke;
 
 import se.stjerneman.anonchat.client.Client;
@@ -22,11 +20,9 @@ import se.stjerneman.anonchat.client.Client;
  * @author Emil Stjerneman
  * 
  */
-public class MenuBar {
+public class ClientWindowMenu {
 
-    private Client client;
-
-    private ClientWindow clientGUI;
+    private ClientWindow clientWindow;
 
     private final JMenuBar menuBar = new JMenuBar();
     private JMenu mnChat = new JMenu("Chat");
@@ -44,9 +40,9 @@ public class MenuBar {
     private JMenuItem mntmAboutChat = new JMenuItem("About AnonChat");
     private JMenuItem mntmLicens = new JMenuItem("Licens");
 
-    public MenuBar (ClientWindow cgui) {
-        this.clientGUI = cgui;
-        this.client = Client.getInstance();
+    public ClientWindowMenu (ClientWindow cw) {
+        clientWindow = cw;
+
         menuBar.add(mnChat);
         menuBar.add(mnView);
         menuBar.add(mnHelp);
@@ -71,44 +67,20 @@ public class MenuBar {
 
         mntmConnect.addActionListener(new ActionListener() {
             public void actionPerformed (ActionEvent event) {
-                try {
-                    client.connect();
-                    mntmConnect.setVisible(false);
-                    mntmDisconnect.setVisible(true);
+                ConnectDialog cd = new ConnectDialog(clientWindow);
+                cd.setVisible(true);
+                toggleElements(true);
 
-                    clientGUI.getMessageArea().setEnabled(true);
-
-                    clientGUI.getChatPane().setText("");
-                    clientGUI.getChatPane().setEnabled(true);
-
-                    clientGUI.getBtnSend().setEnabled(true);
-
-                    clientGUI.startListening();
-
-                }
-                catch (NullPointerException | IOException e) {
-                    JOptionPane.showMessageDialog(null,
-                            "Error when connecting to host.", "Error",
-                            JOptionPane.ERROR_MESSAGE);
-                }
+                clientWindow.startListen();
             }
         });
 
         mntmDisconnect.addActionListener(new ActionListener() {
             public void actionPerformed (ActionEvent event) {
-                client.disconnect();
-                mntmConnect.setVisible(true);
-                mntmDisconnect.setVisible(false);
+                Client.getInstance().disconnect();
+                toggleElements(false);
 
-                clientGUI.getMessageArea().setText("");
-                clientGUI.getMessageArea().setEnabled(false);
-
-                // clientGUI.getChatPane().setText("Disconnected...");
-                clientGUI.getChatPane().setEnabled(false);
-
-                clientGUI.getBtnSend().setEnabled(false);
-
-                UserListGUI.getInstance().getUserListModel().clear();
+                clientWindow.getClientListModel().clear();
             }
         });
 
@@ -120,7 +92,9 @@ public class MenuBar {
 
         mntmLicens.addActionListener(new ActionListener() {
             public void actionPerformed (ActionEvent event) {
-                new LicensDialog().setVisible(true);
+                LicensDialog ld = new LicensDialog();
+                ld.setVisible(true);
+                ld.pack();
             }
         });
 
@@ -132,19 +106,20 @@ public class MenuBar {
 
         mntmShowUsers.addItemListener(new ItemListener() {
             public void itemStateChanged (ItemEvent e) {
-                UserListGUI.getInstance().getScrollPaneUserList()
-                        .setVisible(mntmShowUsers.isSelected());
+                clientWindow.getClientListScrollPane().setVisible(
+                        mntmShowUsers.isSelected());
             }
         });
-
     }
 
     public JMenuBar getMenuBar () {
         return menuBar;
     }
 
-    public JCheckBoxMenuItem getMntmShowUsers () {
-        return mntmShowUsers;
+    private void toggleElements (boolean bool) {
+        mntmConnect.setVisible(!bool);
+        mntmDisconnect.setVisible(bool);
+        clientWindow.getMessageTextArea().setEnabled(bool);
+        clientWindow.getBtnSend().setEnabled(bool);
     }
-
 }

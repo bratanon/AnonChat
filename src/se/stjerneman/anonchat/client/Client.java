@@ -181,21 +181,6 @@ public class Client {
     }
 
     /**
-     * Connect the client.
-     * 
-     * @throws UnknownHostException
-     *             if the IP address of the host could not be determined.
-     * @throws NullPointerException
-     *             if the client username is empty.
-     * @throws IOException
-     *             if an I/O error occurs when creating the socket.
-     */
-    public void connect () throws UnknownHostException, NullPointerException,
-            IOException {
-        this.startRunning(this.host, this.port);
-    }
-
-    /**
      * Disconnects this client.
      */
     public void disconnect () {
