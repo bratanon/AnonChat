@@ -15,6 +15,8 @@ import javax.swing.ScrollPaneConstants;
 import javax.swing.UIManager;
 import javax.swing.border.MatteBorder;
 
+import se.stjerneman.anonchat.client.ui.utils.ApplicationIcons;
+
 public class LicensDialog extends JDialog {
 
     /**

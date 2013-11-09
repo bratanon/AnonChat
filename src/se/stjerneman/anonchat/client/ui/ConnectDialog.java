@@ -10,15 +10,18 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.UnknownHostException;
+import java.util.Properties;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
-import javax.swing.JProgressBar;
 import javax.swing.JTextField;
 
 import se.stjerneman.anonchat.client.Client;
+import se.stjerneman.anonchat.client.ui.settings.UISettings;
+import se.stjerneman.anonchat.client.ui.utils.ApplicationIcons;
 
 import com.jgoodies.forms.factories.FormFactory;
 import com.jgoodies.forms.layout.ColumnSpec;
@@ -34,15 +37,20 @@ public class ConnectDialog extends JDialog {
     private final JTextField username;
     private final JTextField hostPort;
     private final JTextField hostIP;
-    private JProgressBar progressBar;
+    private JCheckBox saveSettings;
+
+    private Properties settings;
 
     /**
      * Create the dialog.
      */
     public ConnectDialog (ClientWindow cw) {
+        setMinimumSize(new Dimension(280, 175));
+
+        settings = UISettings.getInstance().getSettings();
+
         this.clientWindow = cw;
         setIconImages(ApplicationIcons.getIcons());
-        setMinimumSize(new Dimension(280, 150));
         setTitle("Connect to server");
         setAlwaysOnTop(true);
         setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
@@ -71,24 +79,27 @@ public class ConnectDialog extends JDialog {
                         FormFactory.LINE_GAP_ROWSPEC,
                         RowSpec.decode("20px"),
                         FormFactory.LINE_GAP_ROWSPEC,
-                        RowSpec.decode("23px"),
+                        FormFactory.DEFAULT_ROWSPEC,
                         FormFactory.RELATED_GAP_ROWSPEC,
-                        RowSpec.decode("top:default:grow"), }));
+                        RowSpec.decode("23px"),
+                        FormFactory.RELATED_GAP_ROWSPEC, }));
         username.setName("Username");
         getContentPane().add(username, "4, 6, fill, fill");
         username.setColumns(10);
+        username.setText(settings.getProperty("username"));
 
         hostPort = new JTextField();
         hostPort.addFocusListener(new textFieldFocus());
         hostPort.setName("Host port");
-        hostPort.setText("6789");
+        hostPort.setText(settings.getProperty("hostPort"));
         getContentPane().add(hostPort, "4, 4, fill, fill");
         hostPort.setColumns(10);
 
         hostIP = new JTextField();
         hostIP.addFocusListener(new textFieldFocus());
         hostIP.setName("Host IP");
-        hostIP.setText("127.0.0.1");
+
+        hostIP.setText(settings.getProperty("hostIP"));
         getContentPane().add(hostIP, "4, 2, fill, fill");
         hostIP.setColumns(10);
 
@@ -106,17 +117,24 @@ public class ConnectDialog extends JDialog {
         btnConnect.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed (ActionEvent e) {
+                if (getSaveSettings().isSelected()) {
+                    if (!saveConnectionDetails()) {
+                        JOptionPane.showMessageDialog(null,
+                                "Couldn't save the settings.properties file.",
+                                "Error saving settings.",
+                                JOptionPane.WARNING_MESSAGE);
+                    }
+                }
                 if (validateTextFields() && establishConnection()) {
                     dispose();
                 }
             }
         });
-        getContentPane().add(btnConnect, "4, 8, right, bottom");
 
-        progressBar = new JProgressBar();
-        progressBar.setVisible(false);
-        getContentPane().add(progressBar, "2, 10, 3, 1");
-        pack();
+        saveSettings = new JCheckBox("Set these settings as default.");
+        getContentPane().add(saveSettings, "4, 8");
+        getContentPane().add(btnConnect, "4, 10, right, bottom");
+
     }
 
     public int getHostPort () {
@@ -127,8 +145,12 @@ public class ConnectDialog extends JDialog {
         return hostIP.getText().trim();
     }
 
-    public JProgressBar getProgressBar () {
-        return progressBar;
+    public String getUsername () {
+        return username.getText().trim();
+    }
+
+    public JCheckBox getSaveSettings () {
+        return saveSettings;
     }
 
     /**
@@ -137,20 +159,16 @@ public class ConnectDialog extends JDialog {
      * @return true when connected successfully, otherwise false.
      */
     private boolean establishConnection () {
-        updateProgressBar(true, 50);
         Client client = Client.getInstance();
 
         // TODO: Fix username validation.
-        client.setUsername(username.getText().trim());
+        client.setUsername(getUsername());
 
         try {
             client.startRunning(getHostIP(), getHostPort());
 
             clientWindow.client = client;
             clientWindow.startListen();
-
-            updateProgressBar(true, 100);
-
             return true;
         }
         catch (UnknownHostException e) {
@@ -164,8 +182,9 @@ public class ConnectDialog extends JDialog {
             System.out.println(e.getMessage());
             showErrorMessage("No username given.");
         }
-
-        updateProgressBar(false, 0);
+        catch (IllegalArgumentException e) {
+            showErrorMessage("The username is invalid or already in use.");
+        }
 
         return false;
     }
@@ -215,9 +234,11 @@ public class ConnectDialog extends JDialog {
                 JOptionPane.ERROR_MESSAGE);
     }
 
-    private void updateProgressBar (boolean visible, int value) {
-        getProgressBar().setVisible(visible);
-        getProgressBar().setValue(value);
-        pack();
+    private boolean saveConnectionDetails () {
+        settings.setProperty("hostIP", getHostIP());
+        settings.setProperty("hostPort", Integer.toString(getHostPort()));
+        settings.setProperty("username", getUsername());
+
+        return UISettings.saveSettings();
     }
 }

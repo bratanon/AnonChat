@@ -29,6 +29,7 @@ import javax.swing.text.BadLocationException;
 import javax.swing.text.StyledDocument;
 
 import se.stjerneman.anonchat.client.Client;
+import se.stjerneman.anonchat.client.ui.utils.ApplicationIcons;
 import se.stjerneman.anonchat.messages.Message;
 
 /**
@@ -69,6 +70,7 @@ public class ClientWindow {
                     window.frame.setVisible(true);
 
                     ConnectDialog cd = new ConnectDialog(window);
+                    cd.pack();
                     cd.setVisible(true);
 
                 }

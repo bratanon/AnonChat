@@ -116,17 +116,22 @@ public class Server {
 
             // Start a new ClientThread.
             ClientThread client = new ClientThread(clientUUID, clientSocket);
+
+            if (client.error) {
+                continue;
+            }
+
             Thread clientThread = new Thread(client);
 
             clientThread.start();
             clientThread.setName("Client " + clientUUID);
 
-            debug("[INFO] : JOIN - " + client.getUsername());
-
             // Add the client to the list of connected clients.
             this.clients.put(clientUUID, client);
             // Add the client thread to the list of connected client threads.
             this.clientThreads.put(clientUUID, clientThread);
+
+            debug("[INFO] : JOIN - " + client.getUsername());
 
             this.broadcast(new SignInMessage(client.getUsername()), (byte) 1);
 
@@ -158,6 +163,9 @@ public class Server {
             String clientHost = clientSocket.getInetAddress().getHostAddress();
 
             debug("[INFO] : Connection accepted from " + clientHost);
+            debug(clientSocket.getInetAddress().getCanonicalHostName());
+            debug(clientSocket.getInetAddress().getHostAddress());
+            debug(clientSocket.getInetAddress().getHostName());
             return clientSocket;
         }
         catch (IOException | SecurityException e) {
@@ -250,22 +258,12 @@ public class Server {
     protected boolean changeClientUsername (String username, String new_username) {
         String uuid = this.getUserUUID(username);
 
-        List<String> disallowed = Arrays.asList("server", "admin", "mod");
-
         boolean isnull = (uuid == null);
-        boolean isDisallowed = disallowed.contains(new_username.toLowerCase());
         boolean isSame = (username.toLowerCase().equals(new_username
                 .toLowerCase()));
 
-        if (isnull || isDisallowed || isSame) {
+        if (isnull || isSame || !this.validateUsername(new_username)) {
             return false;
-        }
-
-        for (Entry<String, ClientThread> entry : this.clients.entrySet()) {
-            if (entry.getValue().getUsername().toLowerCase()
-                    .equals(new_username.toLowerCase())) {
-                return false;
-            }
         }
 
         this.clients.get(uuid).changeUserName(new_username);
@@ -289,6 +287,30 @@ public class Server {
         }
 
         return null;
+    }
+
+    /**
+     * Validate a username.
+     * 
+     * @param username
+     *            the username to validate.
+     * @return true when the username is valid, otherwise false.
+     */
+    protected boolean validateUsername (String username) {
+        List<String> disallowed = Arrays.asList("server", "admin", "mod");
+
+        if (disallowed.contains(username.toLowerCase())) {
+            return false;
+        }
+
+        for (Entry<String, ClientThread> entry : this.clients.entrySet()) {
+            if (entry.getValue().getUsername().toLowerCase()
+                    .equals(username.toLowerCase())) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

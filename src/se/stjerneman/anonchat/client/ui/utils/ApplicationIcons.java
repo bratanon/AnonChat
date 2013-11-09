@@ -1,4 +1,4 @@
-package se.stjerneman.anonchat.client.ui;
+package se.stjerneman.anonchat.client.ui.utils;
 
 import java.awt.Image;
 import java.awt.Toolkit;

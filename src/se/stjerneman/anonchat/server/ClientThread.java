@@ -46,6 +46,8 @@ class ClientThread implements Runnable {
      */
     private String username;
 
+    protected boolean error = false;
+
     /**
      * Client thread constructor.
      * 
@@ -66,12 +68,29 @@ class ClientThread implements Runnable {
             this.username = (String) this.input.readObject();
         }
         catch (IOException e) {
+            e.printStackTrace();
             System.err.println("[ERROR] Couldn't get the username from the"
                     + "client.");
-            this.server.stopClient(this.uuid);
+            error = true;
         }
         catch (ClassNotFoundException e) {
             // Will never happen as String is in the java core.
+        }
+
+        boolean isValidUsername = server.validateUsername(this.username);
+
+        // Send validation respond.
+        try {
+            this.output.writeBoolean(isValidUsername);
+        }
+        catch (IOException e) {
+            System.err.println("[ERROR] Couldn't send the validation boolean"
+                    + " to the client.");
+            error = true;
+        }
+
+        if (!isValidUsername) {
+            error = true;
         }
 
         // Send the UUID to the client.
@@ -80,9 +99,8 @@ class ClientThread implements Runnable {
         }
         catch (IOException e) {
             System.err.println("[ERROR] Couldn't send the uuid to the client.");
-            this.server.stopClient(this.uuid);
+            error = true;
         }
-
     }
 
     /**

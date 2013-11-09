@@ -127,15 +127,18 @@ public class Client {
      * @param port
      *            the port the host is listening to.
      * 
-     * @throws UnknownHostException
-     *             if the IP address of the host could not be determined.
      * @throws NullPointerException
      *             if the client username is empty.
+     * @throws IllegalArgumentException
+     *             if the username is invalid or already in use.
+     * @throws UnknownHostException
+     *             if the IP address of the host could not be determined.
      * @throws IOException
      *             if an I/O error occurs when creating the socket.
      */
     public void startRunning (String host, int port)
-            throws UnknownHostException, IOException, NullPointerException {
+            throws NullPointerException, IllegalArgumentException,
+            UnknownHostException, IOException {
         this.host = host;
         this.port = port;
 
@@ -150,8 +153,10 @@ public class Client {
         this.setupOutputStream();
         this.setupInputStream();
 
-        // Sends username to the server.
-        this.output.writeObject(this.getUsername());
+        if (!validateUsername()) {
+            throw new IllegalArgumentException(
+                    "The username is invalid or already in use.");
+        }
 
         // Get the UUID.
         try {
@@ -236,5 +241,10 @@ public class Client {
             System.err.println(e.getMessage());
             e.printStackTrace();
         }
+    }
+
+    private boolean validateUsername () throws IOException {
+        this.output.writeObject(this.getUsername());
+        return this.input.readBoolean();
     }
 }
